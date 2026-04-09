@@ -15,7 +15,8 @@ tangy td/                          ← Unity 项目根目录
 │   │   ├── Core/                  ← 核心管理器
 │   │   │   ├── GameManager.cs     ← 全局状态：生命、经验、等级、游戏状态
 │   │   │   ├── GameSetup.cs       ← 场景自动搭建（运行时创建所有对象）
-│   │   │   └── WaveManager.cs     ← 波次循环、敌人类型选择、Boss 波
+│   │   │   ├── WaveManager.cs     ← 波次循环、敌人类型选择、Boss 波
+│   │   │   └── CameraFollow.cs    ← 相机轻微跟随英雄
 │   │   ├── Hero/                  ← 玩家英雄相关
 │   │   │   ├── HeroController.cs  ← WASD 移动、属性（HP/攻击力/攻速/射程）
 │   │   │   ├── HeroShooter.cs     ← 自动瞄准射击、多重射击、暴击
@@ -30,9 +31,12 @@ tangy td/                          ← Unity 项目根目录
 │   │   │   ├── UpgradeManager.cs  ← 升级池、三选一、效果应用、合成检测
 │   │   │   └── UpgradeUI.cs       ← 升级卡牌 UI（全代码构建）
 │   │   ├── UI/                    ← 界面
-│   │   │   └── HUDManager.cs      ← 生命/波次/等级/经验条/公告
+│   │   │   ├── HUDManager.cs      ← 生命/波次/等级/经验条/公告
+│   │   │   └── GameFlowUI.cs      ← 开始界面 + Game Over 界面
 │   │   └── Utils/                 ← 工具
-│   │       └── SpriteFactory.cs   ← 代码生成纯色 Sprite（方形/圆形）
+│   │       ├── SpriteFactory.cs   ← 代码生成纯色 Sprite（方形/圆形）
+│   │       ├── VFXFactory.cs      ← 特效：死亡粒子、命中闪光、经验球
+│   │       └── ObjectPool.cs      ← 通用对象池
 │   ├── ScriptableObjects/         ← SO 资产存放处（目前运行时生成）
 │   ├── Prefabs/                   ← 预制体存放处（目前未使用）
 │   └── Materials/                 ← 材质存放处（目前未使用）

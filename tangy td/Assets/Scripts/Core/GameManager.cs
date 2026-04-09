@@ -4,10 +4,10 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    public enum GameState { Playing, Paused, GameOver }
+    public enum GameState { WaitingToStart, Playing, Paused, GameOver }
 
     [Header("Game State")]
-    public GameState state = GameState.Playing;
+    public GameState state = GameState.WaitingToStart;
     public int currentWave = 0;
 
     [Header("Player Stats")]
@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     public System.Action<int, int> OnExpChanged;       // current, required
     public System.Action<int> OnLevelUp;
     public System.Action OnGameOver;
+    public System.Action OnGameStart;
 
     private void Awake()
     {
@@ -77,6 +78,21 @@ public class GameManager : MonoBehaviour
         state = GameState.GameOver;
         OnGameOver?.Invoke();
         Debug.Log("GAME OVER!");
+    }
+
+    public void StartGame()
+    {
+        if (state != GameState.WaitingToStart) return;
+        state = GameState.Playing;
+        Time.timeScale = 1f;
+        OnGameStart?.Invoke();
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
     }
 
     public void PauseGame()

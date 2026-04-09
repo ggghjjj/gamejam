@@ -12,20 +12,18 @@ public class GameSetup : MonoBehaviour
             gmGO.AddComponent<GameManager>();
         }
 
-        // 2. Waypoint Path - Z-shaped path, auto-fit to camera bounds
-        GameObject pathGO = new GameObject("EnemyPath");
-        WaypointPath path = pathGO.AddComponent<WaypointPath>();
-
+        // 2. Waypoint Paths - auto-fit to camera bounds
         Camera cam = Camera.main;
         float halfH = cam != null ? cam.orthographicSize : 5f;
         float halfW = cam != null ? halfH * cam.aspect : 8f;
-        float margin = 1f; // keep path inside screen edge
+        float margin = 1f;
         float xL = -halfW + margin;
         float xR = halfW - margin;
         float yT = halfH - margin;
         float yB = -halfH + margin;
 
-        Vector3[] positions = new Vector3[]
+        // Path A: Z-shaped (left-to-right start)
+        WaypointPath pathA = CreatePath("EnemyPath_A", new Vector3[]
         {
             new Vector3(xL, yT, 0f),
             new Vector3(xR, yT, 0f),
@@ -35,17 +33,19 @@ public class GameSetup : MonoBehaviour
             new Vector3(xR, -yT * 0.33f, 0f),
             new Vector3(xR, yB, 0f),
             new Vector3(xL, yB, 0f),
-        };
+        });
 
-        Transform[] waypoints = new Transform[positions.Length];
-        for (int i = 0; i < positions.Length; i++)
+        // Path B: S-shaped (right-to-left start)
+        WaypointPath pathB = CreatePath("EnemyPath_B", new Vector3[]
         {
-            GameObject wp = new GameObject($"WP_{i}");
-            wp.transform.parent = pathGO.transform;
-            wp.transform.position = positions[i];
-            waypoints[i] = wp.transform;
-        }
-        path.waypoints = waypoints;
+            new Vector3(xR, yT, 0f),
+            new Vector3(xL, yT, 0f),
+            new Vector3(xL, yT * 0.2f, 0f),
+            new Vector3(0f, 0f, 0f),
+            new Vector3(xR, -yT * 0.2f, 0f),
+            new Vector3(xR, yB, 0f),
+            new Vector3(xL, yB, 0f),
+        });
 
         // 3. Hero
         GameObject heroGO = new GameObject("Hero");
@@ -57,10 +57,11 @@ public class GameSetup : MonoBehaviour
         heroGO.transform.position = new Vector3(0f, yB + 0.5f, 0f);
         heroGO.transform.localScale = Vector3.one * 0.5f;
 
-        // 4. Enemy Spawner
+        // 4. Enemy Spawner (supports multiple paths)
         GameObject spawnerGO = new GameObject("EnemySpawner");
         EnemySpawner spawner = spawnerGO.AddComponent<EnemySpawner>();
-        spawner.path = path;
+        spawner.path = pathA; // default path
+        spawner.paths = new WaypointPath[] { pathA, pathB };
 
         // 5. Wave Manager
         GameObject waveGO = new GameObject("WaveManager");
@@ -104,6 +105,11 @@ public class GameSetup : MonoBehaviour
         upgradeUIGO.transform.SetParent(canvasGO.transform, false);
         upgradeUIGO.AddComponent<UpgradeUI>();
 
+        // Game Flow UI (start screen + game over screen)
+        GameObject flowUIGO = new GameObject("GameFlowUI");
+        flowUIGO.transform.SetParent(canvasGO.transform, false);
+        flowUIGO.AddComponent<GameFlowUI>();
+
         // 8. Camera follow
         if (cam != null)
         {
@@ -114,5 +120,21 @@ public class GameSetup : MonoBehaviour
         Debug.Log("=== Tangy TD \u573a\u666f\u642d\u5efa\u5b8c\u6210 ===");
         Debug.Log("WASD \u79fb\u52a8\u82f1\u96c4\uff0c\u81ea\u52a8\u5c04\u51fb\u8303\u56f4\u5185\u654c\u4eba");
         Debug.Log("\u5347\u7ea7\u540e\u53ef\u9009\u62e9\u5f3a\u5316!");
+    }
+
+    private WaypointPath CreatePath(string name, Vector3[] positions)
+    {
+        GameObject pathGO = new GameObject(name);
+        WaypointPath path = pathGO.AddComponent<WaypointPath>();
+        Transform[] waypoints = new Transform[positions.Length];
+        for (int i = 0; i < positions.Length; i++)
+        {
+            GameObject wp = new GameObject($"WP_{i}");
+            wp.transform.parent = pathGO.transform;
+            wp.transform.position = positions[i];
+            waypoints[i] = wp.transform;
+        }
+        path.waypoints = waypoints;
+        return path;
     }
 }

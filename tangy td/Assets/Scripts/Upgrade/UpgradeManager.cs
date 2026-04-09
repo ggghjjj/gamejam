@@ -148,7 +148,8 @@ public class UpgradeManager : MonoBehaviour
 
     private void CheckSynthesis()
     {
-        // Check all upgrades for synthesis combos
+        HeroController hero = FindAnyObjectByType<HeroController>();
+
         foreach (var upgrade in allUpgrades)
         {
             if (!upgrade.isSynthesized) continue;
@@ -160,26 +161,68 @@ public class UpgradeManager : MonoBehaviour
 
             if (hasA && hasB)
             {
-                Debug.Log($"Synthesis! {upgrade.synthesisIngredientA.upgradeName} + {upgrade.synthesisIngredientB.upgradeName} = {upgrade.upgradeName}");
+                Debug.Log($"\u5408\u6210! {upgrade.synthesisIngredientA.upgradeName} + {upgrade.synthesisIngredientB.upgradeName} = {upgrade.upgradeName}");
                 acquiredUpgrades.Add(upgrade);
                 ApplyEffect(upgrade);
+                ApplySynthesisBonus(upgrade, hero);
             }
+        }
+    }
+
+    private void ApplySynthesisBonus(UpgradeData upgrade, HeroController hero)
+    {
+        // Synthesis upgrades have compound effects beyond the primary effect
+        if (upgrade.upgradeName == "\u72c2\u6218\u58eb") // berserker: also +30% attack speed
+        {
+            attackSpeedMult += 0.3f;
+            if (hero != null) hero.attackSpeed *= 1.3f;
+        }
+        else if (upgrade.upgradeName == "\u72d9\u51fb\u624b") // sniper: also +20% crit
+        {
+            critChance += 0.2f;
+        }
+        else if (upgrade.upgradeName == "\u5f39\u5e55\u98ce\u66b4") // bullet storm: also pierce
+        {
+            pierceShot = true;
+        }
+        else if (upgrade.upgradeName == "\u4e0d\u6b7b\u4e4b\u8eab") // immortal: also +5 regen
+        {
+            hpRegen += 5f;
         }
     }
 
     private void BuildDefaultUpgradePool()
     {
         allUpgrades.Clear();
-        allUpgrades.Add(CreateUpgrade("\u5229\u5203", "\u653b\u51fb\u529b +5", UpgradeEffect.AttackDamage, 5f, new Color(1f, 0.3f, 0.3f)));
-        allUpgrades.Add(CreateUpgrade("\u8fc5\u6377\u4e4b\u624b", "\u653b\u901f +20%", UpgradeEffect.AttackSpeed, 20f, new Color(1f, 0.8f, 0.2f)));
-        allUpgrades.Add(CreateUpgrade("\u98ce\u4e4b\u9774", "\u79fb\u901f +15%", UpgradeEffect.MoveSpeed, 15f, new Color(0.3f, 0.9f, 1f)));
-        allUpgrades.Add(CreateUpgrade("\u9e70\u773c", "\u653b\u51fb\u8303\u56f4 +1", UpgradeEffect.AttackRange, 1f, new Color(0.5f, 1f, 0.5f)));
-        allUpgrades.Add(CreateUpgrade("\u591a\u91cd\u5c04\u51fb", "\u989d\u5916\u5f39\u5c04\u7269 +1", UpgradeEffect.MultiShot, 1f, new Color(0.9f, 0.5f, 0.1f)));
-        allUpgrades.Add(CreateUpgrade("\u7a7f\u900f\u4e4b\u7bad", "\u5b50\u5f39\u53ef\u7a7f\u900f\u654c\u4eba", UpgradeEffect.PierceShot, 1f, new Color(0.7f, 0.3f, 1f)));
-        allUpgrades.Add(CreateUpgrade("\u751f\u547d\u529b", "\u6700\u5927\u751f\u547d +25", UpgradeEffect.MaxHP, 25f, new Color(0.2f, 0.9f, 0.2f)));
-        allUpgrades.Add(CreateUpgrade("\u518d\u751f", "\u6bcf\u79d2\u56de\u590d 2 \u751f\u547d", UpgradeEffect.HPRegen, 2f, new Color(0.4f, 1f, 0.6f)));
-        allUpgrades.Add(CreateUpgrade("\u667a\u6167", "\u7ecf\u9a8c\u83b7\u53d6 +25%", UpgradeEffect.ExpBonus, 25f, new Color(0.6f, 0.6f, 1f)));
-        allUpgrades.Add(CreateUpgrade("\u5e78\u8fd0\u4e00\u51fb", "\u66b4\u51fb\u7387 +10%", UpgradeEffect.CritChance, 10f, new Color(1f, 1f, 0.3f)));
+
+        // Base upgrades (indices 0-9)
+        var blade    = CreateUpgrade("\u5229\u5203", "\u653b\u51fb\u529b +5", UpgradeEffect.AttackDamage, 5f, new Color(1f, 0.3f, 0.3f));
+        var swift    = CreateUpgrade("\u8fc5\u6377\u4e4b\u624b", "\u653b\u901f +20%", UpgradeEffect.AttackSpeed, 20f, new Color(1f, 0.8f, 0.2f));
+        var boots    = CreateUpgrade("\u98ce\u4e4b\u9774", "\u79fb\u901f +15%", UpgradeEffect.MoveSpeed, 15f, new Color(0.3f, 0.9f, 1f));
+        var eagle    = CreateUpgrade("\u9e70\u773c", "\u653b\u51fb\u8303\u56f4 +1", UpgradeEffect.AttackRange, 1f, new Color(0.5f, 1f, 0.5f));
+        var multi    = CreateUpgrade("\u591a\u91cd\u5c04\u51fb", "\u989d\u5916\u5f39\u5c04\u7269 +1", UpgradeEffect.MultiShot, 1f, new Color(0.9f, 0.5f, 0.1f));
+        var pierce   = CreateUpgrade("\u7a7f\u900f\u4e4b\u7bad", "\u5b50\u5f39\u53ef\u7a7f\u900f\u654c\u4eba", UpgradeEffect.PierceShot, 1f, new Color(0.7f, 0.3f, 1f));
+        var vitality = CreateUpgrade("\u751f\u547d\u529b", "\u6700\u5927\u751f\u547d +25", UpgradeEffect.MaxHP, 25f, new Color(0.2f, 0.9f, 0.2f));
+        var regen    = CreateUpgrade("\u518d\u751f", "\u6bcf\u79d2\u56de\u590d 2 \u751f\u547d", UpgradeEffect.HPRegen, 2f, new Color(0.4f, 1f, 0.6f));
+        var wisdom   = CreateUpgrade("\u667a\u6167", "\u7ecf\u9a8c\u83b7\u53d6 +25%", UpgradeEffect.ExpBonus, 25f, new Color(0.6f, 0.6f, 1f));
+        var lucky    = CreateUpgrade("\u5e78\u8fd0\u4e00\u51fb", "\u66b4\u51fb\u7387 +10%", UpgradeEffect.CritChance, 10f, new Color(1f, 1f, 0.3f));
+
+        allUpgrades.AddRange(new[] { blade, swift, boots, eagle, multi, pierce, vitality, regen, wisdom, lucky });
+
+        // Synthesis upgrades (hidden from normal pool, triggered by combo)
+        var berserker = CreateSynthesis("\u72c2\u6218\u58eb", "\u653b\u51fb\u529b +15 \u653b\u901f +30%",
+            UpgradeEffect.AttackDamage, 15f, new Color(1f, 0.1f, 0.1f), blade, swift);
+
+        var sniper = CreateSynthesis("\u72d9\u51fb\u624b", "\u653b\u51fb\u8303\u56f4 +3 \u66b4\u51fb +20%",
+            UpgradeEffect.AttackRange, 3f, new Color(0.2f, 0.8f, 0.2f), eagle, lucky);
+
+        var bullet_storm = CreateSynthesis("\u5f39\u5e55\u98ce\u66b4", "\u989d\u5916\u5f39\u5c04\u7269 +2 \u7a7f\u900f",
+            UpgradeEffect.MultiShot, 2f, new Color(1f, 0.4f, 0f), multi, pierce);
+
+        var immortal = CreateSynthesis("\u4e0d\u6b7b\u4e4b\u8eab", "\u6700\u5927\u751f\u547d +50 \u56de\u590d +5/\u79d2",
+            UpgradeEffect.MaxHP, 50f, new Color(0f, 1f, 0.5f), vitality, regen);
+
+        allUpgrades.AddRange(new[] { berserker, sniper, bullet_storm, immortal });
     }
 
     private UpgradeData CreateUpgrade(string name, string desc, UpgradeEffect effect, float value, Color color)
@@ -190,6 +233,16 @@ public class UpgradeManager : MonoBehaviour
         data.effect = effect;
         data.value = value;
         data.cardColor = color;
+        return data;
+    }
+
+    private UpgradeData CreateSynthesis(string name, string desc, UpgradeEffect effect, float value, Color color,
+        UpgradeData ingredientA, UpgradeData ingredientB)
+    {
+        UpgradeData data = CreateUpgrade(name, desc, effect, value, color);
+        data.isSynthesized = true;
+        data.synthesisIngredientA = ingredientA;
+        data.synthesisIngredientB = ingredientB;
         return data;
     }
 }

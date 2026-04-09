@@ -42,6 +42,10 @@ public class WaveManager : MonoBehaviour
 
     private IEnumerator WaveLoop()
     {
+        // Wait for game to start (start screen)
+        yield return new WaitUntil(() =>
+            GameManager.Instance == null || GameManager.Instance.state == GameManager.GameState.Playing);
+
         // Small delay before first wave
         yield return new WaitForSeconds(1.5f);
 

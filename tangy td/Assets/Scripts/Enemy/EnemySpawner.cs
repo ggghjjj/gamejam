@@ -4,6 +4,7 @@ public class EnemySpawner : MonoBehaviour
 {
     [Header("References")]
     public WaypointPath path;
+    public WaypointPath[] paths; // multiple paths for variety
 
     [Header("Base Enemy Stats")]
     public float baseHP = 30f;
@@ -48,12 +49,19 @@ public class EnemySpawner : MonoBehaviour
                 break;
         }
 
+        // Pick a random path if multiple available
+        WaypointPath usedPath = path;
+        if (paths != null && paths.Length > 0)
+        {
+            usedPath = paths[Random.Range(0, paths.Length)];
+        }
+
         GameObject enemyGO = new GameObject($"Enemy_{type}_W{wave}");
         enemyGO.AddComponent<SpriteRenderer>();
         enemyGO.AddComponent<CircleCollider2D>();
 
         EnemyBase enemy = enemyGO.AddComponent<EnemyBase>();
-        enemy.Init(path, hp, speed, exp, color, scale);
+        enemy.Init(usedPath, hp, speed, exp, color, scale);
 
         var tracker = enemyGO.AddComponent<DestroyNotifier>();
         tracker.onDestroy += () => WaveManager.Instance?.OnEnemyDied();
