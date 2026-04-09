@@ -97,6 +97,7 @@ public class EnemyBase : MonoBehaviour
             return;
 
         MoveAlongPath();
+        ClampToScreen();
         ApplyBob();
         ApplyHitScale();
     }
@@ -117,6 +118,18 @@ public class EnemyBase : MonoBehaviour
         {
             _currentWaypointIndex++;
         }
+    }
+
+    private void ClampToScreen()
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return;
+        float h = cam.orthographicSize;
+        float w = h * cam.aspect;
+        Vector3 p = transform.position;
+        p.x = Mathf.Clamp(p.x, -w, w);
+        p.y = Mathf.Clamp(p.y, -h, h);
+        transform.position = p;
     }
 
     private void ApplyBob()

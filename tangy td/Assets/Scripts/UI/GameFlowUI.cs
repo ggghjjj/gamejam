@@ -113,7 +113,34 @@ public class GameFlowUI : MonoBehaviour
                 _talentUI.Show(canvas.transform);
             });
 
+        // Debug: add diamonds
+        Text debugBtnText = null;
+        CreateButton(_mainMenuPanel.transform, "BtnDebug", $"+50\u94bb\u77f3 [\u5f53\u524d:{PlayerSave.Diamonds}]",
+            new Vector2(0.2f, 0.06f), new Vector2(0.8f, 0.14f),
+            new Color(0.35f, 0.35f, 0.45f), 16,
+            () => {
+                PlayerSave.AddTestDiamonds(50);
+            });
+        // Get the text to update it
+        var debugBtn = _mainMenuPanel.transform.Find("BtnDebug");
+        if (debugBtn != null) debugBtnText = debugBtn.GetComponentInChildren<Text>();
+
         _mainMenuPanel.SetActive(true);
+
+        // Keep diamond count updated
+        if (debugBtnText != null)
+        {
+            StartCoroutine(UpdateDebugText(debugBtnText));
+        }
+    }
+
+    private System.Collections.IEnumerator UpdateDebugText(Text t)
+    {
+        while (t != null)
+        {
+            t.text = $"+50\u94bb\u77f3 [\u5f53\u524d:{PlayerSave.Diamonds}]";
+            yield return new WaitForSecondsRealtime(0.5f);
+        }
     }
 
     // ==================== Level Select (Map-style drag) ====================
