@@ -71,18 +71,18 @@ public class HUDManager : MonoBehaviour
         Transform root = canvas.transform;
 
         // --- Top left: Lives ---
-        _livesText = CreateText(root, "LivesText", "\u751f\u547d: 20", 20,
-            new Vector2(0f, 0.92f), new Vector2(0.2f, 1f), TextAnchor.MiddleLeft);
+        _livesText = CreateText(root, "LivesText", "\u751f\u547d: 20", 36,
+            new Vector2(0f, 0.93f), new Vector2(0.3f, 1f), TextAnchor.MiddleLeft);
         _livesText.color = new Color(1f, 0.4f, 0.4f);
 
         // --- Top center: Wave ---
-        _waveText = CreateText(root, "WaveText", "\u6ce2\u6b21: 0", 22,
-            new Vector2(0.35f, 0.92f), new Vector2(0.65f, 1f), TextAnchor.MiddleCenter);
+        _waveText = CreateText(root, "WaveText", "\u6ce2\u6b21: 0", 36,
+            new Vector2(0.3f, 0.93f), new Vector2(0.7f, 1f), TextAnchor.MiddleCenter);
         _waveText.color = Color.white;
 
         // --- Top right: Level ---
-        _levelText = CreateText(root, "LevelText", "\u7b49\u7ea7: 1", 20,
-            new Vector2(0.8f, 0.92f), new Vector2(1f, 1f), TextAnchor.MiddleRight);
+        _levelText = CreateText(root, "LevelText", "\u7b49\u7ea7: 1", 36,
+            new Vector2(0.7f, 0.93f), new Vector2(1f, 1f), TextAnchor.MiddleRight);
         _levelText.color = new Color(0.6f, 0.8f, 1f);
 
         // --- Exp bar (bottom of screen) ---
@@ -107,7 +107,7 @@ public class HUDManager : MonoBehaviour
         fillRT.offsetMax = Vector2.zero;
 
         // --- Wave announcement (center) ---
-        _waveAnnounce = CreateText(root, "WaveAnnounce", "", 36,
+        _waveAnnounce = CreateText(root, "WaveAnnounce", "", 48,
             new Vector2(0.2f, 0.45f), new Vector2(0.8f, 0.55f), TextAnchor.MiddleCenter);
         _waveAnnounce.color = Color.yellow;
         _waveAnnounce.fontStyle = FontStyle.Bold;
@@ -171,7 +171,7 @@ public class HUDManager : MonoBehaviour
         {
             _waveAnnounce.text = "\u6e38\u620f\u7ed3\u675f";
             _waveAnnounce.color = Color.red;
-            _waveAnnounce.fontSize = 48;
+            _waveAnnounce.fontSize = 60;
             _waveAnnounce.gameObject.SetActive(true);
             _announceTimer = 999f;
         }

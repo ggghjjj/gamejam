@@ -12,20 +12,29 @@ public class GameSetup : MonoBehaviour
             gmGO.AddComponent<GameManager>();
         }
 
-        // 2. Waypoint Path - Z-shaped path across the screen
+        // 2. Waypoint Path - Z-shaped path, auto-fit to camera bounds
         GameObject pathGO = new GameObject("EnemyPath");
         WaypointPath path = pathGO.AddComponent<WaypointPath>();
 
+        Camera cam = Camera.main;
+        float halfH = cam != null ? cam.orthographicSize : 5f;
+        float halfW = cam != null ? halfH * cam.aspect : 8f;
+        float margin = 1f; // keep path inside screen edge
+        float xL = -halfW + margin;
+        float xR = halfW - margin;
+        float yT = halfH - margin;
+        float yB = -halfH + margin;
+
         Vector3[] positions = new Vector3[]
         {
-            new Vector3(-7f, 4f, 0f),
-            new Vector3(7f, 4f, 0f),
-            new Vector3(7f, 1.5f, 0f),
-            new Vector3(-7f, 1.5f, 0f),
-            new Vector3(-7f, -1f, 0f),
-            new Vector3(7f, -1f, 0f),
-            new Vector3(7f, -3.5f, 0f),
-            new Vector3(-7f, -3.5f, 0f),
+            new Vector3(xL, yT, 0f),
+            new Vector3(xR, yT, 0f),
+            new Vector3(xR, yT * 0.33f, 0f),
+            new Vector3(xL, yT * 0.33f, 0f),
+            new Vector3(xL, -yT * 0.33f, 0f),
+            new Vector3(xR, -yT * 0.33f, 0f),
+            new Vector3(xR, yB, 0f),
+            new Vector3(xL, yB, 0f),
         };
 
         Transform[] waypoints = new Transform[positions.Length];
@@ -45,7 +54,8 @@ public class GameSetup : MonoBehaviour
         heroGO.AddComponent<HeroShooter>();
         var heroCol = heroGO.AddComponent<BoxCollider2D>();
         heroCol.size = new Vector2(0.8f, 0.8f);
-        heroGO.transform.position = new Vector3(0f, -4f, 0f);
+        heroGO.transform.position = new Vector3(0f, yB + 0.5f, 0f);
+        heroGO.transform.localScale = Vector3.one * 0.5f;
 
         // 4. Enemy Spawner
         GameObject spawnerGO = new GameObject("EnemySpawner");
@@ -67,7 +77,9 @@ public class GameSetup : MonoBehaviour
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 100;
         canvasGO.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        canvasGO.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
+        var scaler = canvasGO.GetComponent<CanvasScaler>();
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        scaler.matchWidthOrHeight = 0.5f; // blend between width and height matching
         canvasGO.AddComponent<GraphicRaycaster>();
 
         // EventSystem (required for UI clicks)

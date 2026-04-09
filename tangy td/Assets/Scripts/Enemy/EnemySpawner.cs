@@ -23,28 +23,28 @@ public class EnemySpawner : MonoBehaviour
                 speed = baseSpeed * 1.8f * speedMult;
                 exp = baseExp + 5;
                 color = new Color(0.2f, 0.85f, 0.3f); // green
-                scale = 0.7f;
+                scale = 0.35f;
                 break;
             case EnemyType.Tank:
                 hp = baseHP * 3f * hpMult;
                 speed = baseSpeed * 0.6f * speedMult;
                 exp = baseExp + 15;
                 color = new Color(0.6f, 0.2f, 0.8f); // purple
-                scale = 1.4f;
+                scale = 0.7f;
                 break;
             case EnemyType.Boss:
                 hp = baseHP * 10f * hpMult;
                 speed = baseSpeed * 0.5f * speedMult;
                 exp = baseExp * 5;
                 color = new Color(1f, 0.5f, 0.1f); // orange
-                scale = 2f;
+                scale = 1f;
                 break;
             default: // Normal
                 hp = baseHP * hpMult;
                 speed = baseSpeed * speedMult;
                 exp = baseExp;
                 color = new Color(0.9f, 0.2f, 0.2f); // red
-                scale = 1f;
+                scale = 0.5f;
                 break;
         }
 
