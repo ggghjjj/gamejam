@@ -312,7 +312,7 @@ public class GameFlowUI : MonoBehaviour
                     GameManager.Instance.wavesPerLevel = 5 + levelIdx * 2;
                 _levelSelectPanel.SetActive(false);
                 _mainMenuPanel.SetActive(false);
-                GameManager.Instance?.StartGame();
+                StartCoroutine(ShowLevelIntro());
             });
         }
 
