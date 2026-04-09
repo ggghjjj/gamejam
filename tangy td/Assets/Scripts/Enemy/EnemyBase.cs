@@ -49,8 +49,11 @@ public class EnemyBase : MonoBehaviour
 
         gameObject.tag = "Enemy";
 
-        // HP bar
-        CreateHPBar(scale);
+        // HP bar only for big enemies (Tank/Boss)
+        if (scale >= 0.4f)
+        {
+            CreateHPBar(scale);
+        }
     }
 
     private void CreateHPBar(float scale)

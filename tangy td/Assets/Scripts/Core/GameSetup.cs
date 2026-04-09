@@ -153,9 +153,13 @@ public class GameSetup : MonoBehaviour
         // 9. Environment decorations
         SpawnEnvironment(xL, xR, yT, yB);
 
-        // 10. Path visualization
-        VisualizePath(pathA, new Color(0.6f, 0.45f, 0.2f, 0.15f));
-        VisualizePath(pathB, new Color(0.5f, 0.4f, 0.25f, 0.12f));
+        // 10. Path visualization (wide road)
+        VisualizePath(pathA, new Color(0.45f, 0.35f, 0.18f, 0.25f));
+        VisualizePath(pathB, new Color(0.4f, 0.32f, 0.2f, 0.2f));
+
+        // 11. Spawn/End point markers
+        SpawnPathMarkers(pathA);
+        SpawnPathMarkers(pathB);
 
         Debug.Log("=== Tangy TD \u573a\u666f\u642d\u5efa\u5b8c\u6210 ===");
         Debug.Log("WASD \u79fb\u52a8\u82f1\u96c4\uff0c\u81ea\u52a8\u5c04\u51fb\u8303\u56f4\u5185\u654c\u4eba");
@@ -164,7 +168,7 @@ public class GameSetup : MonoBehaviour
 
     private void SpawnEnvironment(float xL, float xR, float yT, float yB)
     {
-        int treeCount = 15;
+        int treeCount = 12;
         for (int i = 0; i < treeCount; i++)
         {
             float x = Random.Range(xL + 0.5f, xR - 0.5f);
@@ -172,19 +176,39 @@ public class GameSetup : MonoBehaviour
 
             GameObject tree = new GameObject($"Tree_{i}");
             tree.transform.position = new Vector3(x, y, 0f);
-            tree.transform.localScale = Vector3.one * 0.3f;
 
-            var sr = tree.AddComponent<SpriteRenderer>();
-            Color treeColor = new Color(
-                Random.Range(0.05f, 0.12f),
-                Random.Range(0.3f, 0.45f),
-                Random.Range(0.05f, 0.12f));
-            sr.sprite = SpriteFactory.CreateCircle(treeColor, 16);
-            sr.sortingOrder = 3;
+            // Tree trunk (dark brown square)
+            var trunk = new GameObject("Trunk");
+            trunk.transform.SetParent(tree.transform, false);
+            trunk.transform.localScale = new Vector3(0.08f, 0.15f, 1f);
+            trunk.transform.localPosition = new Vector3(0f, -0.05f, 0f);
+            var trunkSR = trunk.AddComponent<SpriteRenderer>();
+            trunkSR.sprite = SpriteFactory.CreateSquare(new Color(0.3f, 0.18f, 0.08f), 8);
+            trunkSR.sortingOrder = 3;
+
+            // Tree crown (layered circles for fullness)
+            float crownSize = Random.Range(0.2f, 0.35f);
+            for (int c = 0; c < 3; c++)
+            {
+                var crown = new GameObject($"Crown_{c}");
+                crown.transform.SetParent(tree.transform, false);
+                float offset = c * 0.03f;
+                crown.transform.localPosition = new Vector3(
+                    Random.Range(-0.04f, 0.04f),
+                    0.05f + offset, 0f);
+                crown.transform.localScale = Vector3.one * (crownSize - c * 0.03f);
+                var crownSR = crown.AddComponent<SpriteRenderer>();
+                Color g = new Color(
+                    Random.Range(0.1f, 0.2f),
+                    Random.Range(0.35f, 0.55f),
+                    Random.Range(0.08f, 0.18f));
+                crownSR.sprite = SpriteFactory.CreateCircle(g, 16);
+                crownSR.sortingOrder = 4 + c;
+            }
 
             // Collider for placement blocking
             var col = tree.AddComponent<CircleCollider2D>();
-            col.radius = 0.4f;
+            col.radius = 0.2f;
             col.isTrigger = true;
         }
     }
@@ -198,22 +222,54 @@ public class GameSetup : MonoBehaviour
             Vector3 from = path.GetPosition(i);
             Vector3 to = path.GetPosition(i + 1);
             float dist = Vector3.Distance(from, to);
-            int dots = Mathf.CeilToInt(dist / 0.5f);
+            int segments = Mathf.CeilToInt(dist / 0.3f);
 
-            for (int d = 0; d < dots; d++)
+            for (int d = 0; d < segments; d++)
             {
-                float t = (float)d / dots;
+                float t = (float)d / segments;
                 Vector3 pos = Vector3.Lerp(from, to, t);
 
-                GameObject dot = new GameObject("PathDot");
-                dot.transform.position = pos;
-                dot.transform.localScale = Vector3.one * 0.15f;
+                GameObject road = new GameObject("Road");
+                road.transform.position = pos;
+                // Wide road segments
+                road.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
 
-                var sr = dot.AddComponent<SpriteRenderer>();
+                var sr = road.AddComponent<SpriteRenderer>();
                 sr.sprite = SpriteFactory.CreateSquare(color, 8);
                 sr.sortingOrder = 0;
             }
         }
+    }
+
+    private void SpawnPathMarkers(WaypointPath path)
+    {
+        if (path == null || path.Length < 2) return;
+
+        // Spawn point (enemy nest) - red skull-like circle
+        Vector3 spawnPos = path.GetPosition(0);
+        GameObject nest = new GameObject("EnemyNest");
+        nest.transform.position = spawnPos;
+        nest.transform.localScale = Vector3.one * 0.4f;
+        var nestSR = nest.AddComponent<SpriteRenderer>();
+        nestSR.sprite = SpriteFactory.CreateCircle(new Color(0.8f, 0.15f, 0.15f, 0.8f), 32);
+        nestSR.sortingOrder = 2;
+        // Inner mark
+        var nestInner = new GameObject("Inner");
+        nestInner.transform.SetParent(nest.transform, false);
+        nestInner.transform.localScale = Vector3.one * 0.5f;
+        var nestInnerSR = nestInner.AddComponent<SpriteRenderer>();
+        nestInnerSR.sprite = SpriteFactory.CreateCircle(new Color(0.3f, 0.05f, 0.05f), 16);
+        nestInnerSR.sortingOrder = 3;
+
+        // End point (base) - blue diamond-like square
+        Vector3 endPos = path.GetPosition(path.Length - 1);
+        GameObject basePoint = new GameObject("Base");
+        basePoint.transform.position = endPos;
+        basePoint.transform.localScale = Vector3.one * 0.35f;
+        basePoint.transform.rotation = Quaternion.Euler(0, 0, 45);
+        var baseSR = basePoint.AddComponent<SpriteRenderer>();
+        baseSR.sprite = SpriteFactory.CreateSquare(new Color(0.2f, 0.5f, 1f, 0.8f), 16);
+        baseSR.sortingOrder = 2;
     }
 
     private WaypointPath CreatePath(string name, Vector3[] positions)

@@ -8,7 +8,7 @@ public class HeroController : MonoBehaviour
     public Stat damage = new Stat(10f);
     public Stat attackSpeed = new Stat(3f);
     public Stat moveSpeedStat = new Stat(5f);
-    public Stat attackRange = new Stat(3f);        // closer range (was 5)
+    public Stat attackRange = new Stat(1.5f);        // halved from 3
     public Stat maxHPStat = new Stat(150f);
 
     [Header("Runtime")]

@@ -29,7 +29,10 @@ public class PlacementSystem : MonoBehaviour
     private List<Text> _shopTexts = new List<Text>();
     private GameObject _previewGO;
     private SpriteRenderer _previewSR;
+    private GameObject _previewRange;
+    private SpriteRenderer _previewRangeSR;
     private bool _previewValid;
+    private float _flashTimer;
 
     public System.Action OnTowerPlaced;
 
@@ -63,6 +66,10 @@ public class PlacementSystem : MonoBehaviour
 
     private void Update()
     {
+        // Flash shop buttons when affordable
+        _flashTimer += Time.deltaTime;
+        UpdateShopFlash();
+
         if (!isPlacing || _previewGO == null) return;
 
         Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -74,16 +81,15 @@ public class PlacementSystem : MonoBehaviour
         if (_previewSR != null)
         {
             Color c = _towerTemplates[selectedTowerIndex].color;
-            if (_previewValid)
-            {
-                c.a = 0.5f;
-            }
-            else
-            {
-                c = Color.red;
-                c.a = 0.5f;
-            }
+            c.a = _previewValid ? 0.5f : 0.3f;
+            if (!_previewValid) c = new Color(1f, 0.2f, 0.2f, 0.3f);
             _previewSR.color = c;
+        }
+        // Range circle color
+        if (_previewRangeSR != null)
+        {
+            Color rc = _previewValid ? new Color(0.3f, 1f, 0.3f, 0.15f) : new Color(1f, 0.2f, 0.2f, 0.2f);
+            _previewRangeSR.color = rc;
         }
 
         if (Input.GetMouseButtonDown(0) && _previewValid)
@@ -157,7 +163,7 @@ public class PlacementSystem : MonoBehaviour
     private void CancelPlacing()
     {
         isPlacing = false;
-        if (_previewGO != null) { Destroy(_previewGO); _previewGO = null; _previewSR = null; }
+        if (_previewGO != null) { Destroy(_previewGO); _previewGO = null; _previewSR = null; _previewRange = null; _previewRangeSR = null; }
     }
 
     public void StartPlacing(int index)
@@ -184,6 +190,15 @@ public class PlacementSystem : MonoBehaviour
 
         _previewSR.sortingOrder = 20;
         _previewGO.transform.localScale = Vector3.one * data.spriteScale;
+
+        // Range circle preview
+        _previewRange = new GameObject("PreviewRange");
+        _previewRange.transform.SetParent(_previewGO.transform, false);
+        _previewRangeSR = _previewRange.AddComponent<SpriteRenderer>();
+        _previewRangeSR.sprite = SpriteFactory.CreateCircle(new Color(0.3f, 1f, 0.3f, 0.15f), 64);
+        _previewRangeSR.sortingOrder = 19;
+        float rangeDiameter = data.baseRange * 2f / data.spriteScale;
+        _previewRange.transform.localScale = Vector3.one * rangeDiameter;
     }
 
     private int GetPrice(int index)
@@ -276,6 +291,31 @@ public class PlacementSystem : MonoBehaviour
         }
     }
 
+    private void UpdateShopFlash()
+    {
+        int gold = GameManager.Instance != null ? GameManager.Instance.gold : 0;
+        float pulse = (Mathf.Sin(_flashTimer * 4f) + 1f) * 0.5f; // 0~1 pulse
+        for (int i = 0; i < _shopButtons.Count; i++)
+        {
+            int price = GetPrice(i);
+            bool canAfford = gold >= price && towersPlaced < maxTowers;
+            var img = _shopButtons[i].GetComponent<Image>();
+            if (img != null && canAfford)
+            {
+                Color c = _towerTemplates[i].color;
+                c = Color.Lerp(c * 0.4f, c * 0.9f, pulse);
+                c.a = 0.95f;
+                img.color = c;
+            }
+            else if (img != null)
+            {
+                Color c = _towerTemplates[i].color * 0.2f;
+                c.a = 0.7f;
+                img.color = c;
+            }
+        }
+    }
+
     // ========== Tower templates ==========
     private void BuildTowerTemplates()
     {
@@ -287,7 +327,7 @@ public class PlacementSystem : MonoBehaviour
         archer.color = new Color(0.2f, 0.8f, 0.2f);
         archer.baseDamage = 8f;
         archer.baseAttackSpeed = 2f;
-        archer.baseRange = 3f;
+        archer.baseRange = 1.5f;
         archer.spriteScale = 0.3f;
         _towerTemplates.Add(archer);
 
@@ -297,7 +337,7 @@ public class PlacementSystem : MonoBehaviour
         warrior.color = new Color(0.9f, 0.4f, 0.1f);
         warrior.baseDamage = 15f;
         warrior.baseAttackSpeed = 0.8f;
-        warrior.baseRange = 1.5f;
+        warrior.baseRange = 0.8f;
         warrior.spriteScale = 0.35f;
         _towerTemplates.Add(warrior);
 
@@ -307,7 +347,7 @@ public class PlacementSystem : MonoBehaviour
         mage.color = new Color(0.6f, 0.3f, 0.9f);
         mage.baseDamage = 20f;
         mage.baseAttackSpeed = 0.5f;
-        mage.baseRange = 4f;
+        mage.baseRange = 2f;
         mage.spriteScale = 0.3f;
         _towerTemplates.Add(mage);
     }

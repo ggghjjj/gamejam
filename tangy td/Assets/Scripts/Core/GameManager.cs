@@ -15,8 +15,8 @@ public class GameManager : MonoBehaviour
     public int playerLives = 30;
     public int experience = 0;
     public int level = 1;
-    public int expToNextLevel = 30;
-    public float expScalePerLevel = 1.3f;
+    public int expToNextLevel = 50;
+    public float expScalePerLevel = 1.5f;
     public int totalKills = 0;
     public int gold = 0;
 

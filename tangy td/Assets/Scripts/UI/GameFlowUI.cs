@@ -36,30 +36,44 @@ public class GameFlowUI : MonoBehaviour
 
         // Title
         CreateLabel(_startPanel.transform, "Title", "Tangy TD",
-            new Vector2(0.1f, 0.55f), new Vector2(0.9f, 0.8f),
+            new Vector2(0.1f, 0.65f), new Vector2(0.9f, 0.85f),
             60, Color.white, FontStyle.Bold);
 
-        // Subtitle
         CreateLabel(_startPanel.transform, "Subtitle", "\u5854\u9632 + \u8089\u9e3d",
-            new Vector2(0.2f, 0.48f), new Vector2(0.8f, 0.56f),
-            28, new Color(0.7f, 0.7f, 0.7f), FontStyle.Normal);
+            new Vector2(0.2f, 0.58f), new Vector2(0.8f, 0.65f),
+            24, new Color(0.7f, 0.7f, 0.7f), FontStyle.Normal);
 
-        // Instructions
+        // Level select
+        CreateLabel(_startPanel.transform, "LevelLabel", "\u9009\u62e9\u5173\u5361",
+            new Vector2(0.2f, 0.45f), new Vector2(0.8f, 0.55f),
+            28, new Color(1f, 0.85f, 0.3f), FontStyle.Bold);
+
+        // Level buttons
+        for (int i = 0; i < 3; i++)
+        {
+            int levelNum = i + 1;
+            float x = 0.15f + i * 0.27f;
+            string label = $"\u7b2c {levelNum} \u5173";
+            Color c = i == 0 ? new Color(0.2f, 0.7f, 0.3f) :
+                      i == 1 ? new Color(0.7f, 0.5f, 0.1f) :
+                               new Color(0.7f, 0.2f, 0.2f);
+            CreateButton(_startPanel.transform, $"Level{levelNum}",
+                label,
+                new Vector2(x, 0.28f), new Vector2(x + 0.22f, 0.43f),
+                c, 24,
+                () =>
+                {
+                    if (GameManager.Instance != null)
+                        GameManager.Instance.wavesPerLevel = levelNum * 10;
+                    _startPanel.SetActive(false);
+                    GameManager.Instance?.StartGame();
+                });
+        }
+
         CreateLabel(_startPanel.transform, "Instructions",
-            "WASD \u79fb\u52a8\u82f1\u96c4\n\u81ea\u52a8\u653b\u51fb\u8303\u56f4\u5185\u654c\u4eba\n\u6d88\u706d\u654c\u4eba\u83b7\u53d6\u7ecf\u9a8c\uff0c\u5347\u7ea7\u9009\u62e9\u5f3a\u5316",
-            new Vector2(0.15f, 0.3f), new Vector2(0.85f, 0.47f),
-            22, new Color(0.6f, 0.8f, 1f), FontStyle.Normal);
-
-        // Start button
-        CreateButton(_startPanel.transform, "StartBtn",
-            "\u5f00\u59cb\u6e38\u620f",
-            new Vector2(0.3f, 0.12f), new Vector2(0.7f, 0.25f),
-            new Color(0.2f, 0.7f, 0.3f), 32,
-            () =>
-            {
-                _startPanel.SetActive(false);
-                GameManager.Instance?.StartGame();
-            });
+            "WASD \u79fb\u52a8  |  \u6740\u602a\u5f97\u91d1\u5e01  |  \u8d2d\u4e70\u82f1\u96c4\u653e\u5728\u8def\u8fb9",
+            new Vector2(0.1f, 0.15f), new Vector2(0.9f, 0.25f),
+            20, new Color(0.6f, 0.8f, 1f), FontStyle.Normal);
 
         _startPanel.SetActive(true);
     }

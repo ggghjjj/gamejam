@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 
 public class WaveManager : MonoBehaviour
 {
@@ -9,26 +8,26 @@ public class WaveManager : MonoBehaviour
     [Header("References")]
     public EnemySpawner spawner;
 
-    [Header("Wave Settings")]
-    public int baseEnemiesPerWave = 50;
-    public int extraEnemiesPerWave = 10;
-    public float spawnInterval = 0.4f;
-    public float waveCooldown = 4f;
-    public float hpScalePerWave = 1.15f;
-    public float speedScalePerWave = 1.03f;
-    public int bossEveryNWaves = 5;
-    public int maxEnemiesPerWave = 200;
+    [Header("Continuous Spawn Settings")]
+    public float baseSpawnInterval = 0.5f;     // seconds between spawns
+    public float minSpawnInterval = 0.08f;     // fastest spawn rate
+    public float intervalDecayPerMinute = 0.05f; // spawn gets faster over time
+    public float hpScalePerMinute = 1.3f;      // enemy HP grows over time
+    public float speedScalePerMinute = 1.1f;
+    public int bossEveryNKills = 80;           // boss every N kills
 
     [Header("Runtime")]
-    public int currentWave = 0;
-    public bool waveInProgress = false;
+    public int currentWave = 0; // purely cosmetic, increments every ~30s
+    public float elapsedTime = 0f;
+    public int totalSpawned = 0;
 
     private int _enemiesAlive = 0;
+    private float _waveTimer = 0f;
 
     // Events
-    public System.Action<int> OnWaveStart;          // wave number
-    public System.Action<int> OnWaveComplete;       // wave number
-    public System.Action<float> OnCooldownTick;     // seconds remaining
+    public System.Action<int> OnWaveStart;
+    public System.Action<int> OnWaveComplete;
+    public System.Action<float> OnCooldownTick;
 
     private void Awake()
     {
@@ -38,112 +37,97 @@ public class WaveManager : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(WaveLoop());
+        StartCoroutine(ContinuousSpawnLoop());
     }
 
-    private IEnumerator WaveLoop()
+    private IEnumerator ContinuousSpawnLoop()
     {
-        // Wait for game to start (start screen)
+        // Wait for game to start
         yield return new WaitUntil(() =>
             GameManager.Instance == null || GameManager.Instance.state == GameManager.GameState.Playing);
 
-        // Small delay before first wave
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(1f);
+        currentWave = 1;
+        if (GameManager.Instance != null) GameManager.Instance.currentWave = currentWave;
+        OnWaveStart?.Invoke(currentWave);
 
         while (true)
         {
-            if (GameManager.Instance != null && GameManager.Instance.state == GameManager.GameState.GameOver)
+            // Check game state
+            if (GameManager.Instance != null &&
+                (GameManager.Instance.state == GameManager.GameState.GameOver ||
+                 GameManager.Instance.state == GameManager.GameState.Victory))
                 yield break;
 
-            // Start new wave
-            currentWave++;
-            waveInProgress = true;
-            if (GameManager.Instance != null) GameManager.Instance.currentWave = currentWave;
-            OnWaveStart?.Invoke(currentWave);
-
-            // Spawn enemies for this wave
-            yield return StartCoroutine(SpawnWaveEnemies());
-
-            // Wait for all enemies to die
-            yield return new WaitUntil(() => _enemiesAlive <= 0);
-
-            waveInProgress = false;
-            OnWaveComplete?.Invoke(currentWave);
-
-            // Check victory
-            if (GameManager.Instance != null && currentWave >= GameManager.Instance.wavesPerLevel)
-            {
-                GameManager.Instance.SetVictory();
-                yield break;
-            }
-
-            // Cooldown between waves
-            float cooldown = waveCooldown;
-            while (cooldown > 0f)
-            {
-                // Pause-aware wait
-                if (GameManager.Instance == null || GameManager.Instance.state == GameManager.GameState.Playing)
-                {
-                    cooldown -= Time.deltaTime;
-                    OnCooldownTick?.Invoke(cooldown);
-                }
-                yield return null;
-            }
-        }
-    }
-
-    private IEnumerator SpawnWaveEnemies()
-    {
-        int count = Mathf.Min(baseEnemiesPerWave + (currentWave - 1) * extraEnemiesPerWave, maxEnemiesPerWave);
-        float hpMult = Mathf.Pow(hpScalePerWave, currentWave - 1);
-        float speedMult = Mathf.Pow(speedScalePerWave, currentWave - 1);
-        float interval = Mathf.Max(0.1f, spawnInterval - currentWave * 0.03f);
-
-        bool isBossWave = (currentWave % bossEveryNWaves == 0);
-
-        for (int i = 0; i < count; i++)
-        {
             // Wait while paused
             yield return new WaitUntil(() =>
                 GameManager.Instance == null || GameManager.Instance.state == GameManager.GameState.Playing);
 
-            if (GameManager.Instance != null && GameManager.Instance.state == GameManager.GameState.GameOver)
-                yield break;
+            elapsedTime += Time.deltaTime;
+            _waveTimer += Time.deltaTime;
 
-            // Decide enemy type based on wave
-            EnemyType type = PickEnemyType(i, count);
+            // Cosmetic wave counter (every 30 seconds)
+            if (_waveTimer >= 30f)
+            {
+                _waveTimer = 0f;
+                currentWave++;
+                if (GameManager.Instance != null) GameManager.Instance.currentWave = currentWave;
+                OnWaveStart?.Invoke(currentWave);
+
+                // Victory check
+                if (GameManager.Instance != null && currentWave > GameManager.Instance.wavesPerLevel)
+                {
+                    // Wait for remaining enemies
+                    yield return new WaitUntil(() => _enemiesAlive <= 0);
+                    GameManager.Instance.SetVictory();
+                    yield break;
+                }
+            }
+
+            // Calculate difficulty based on elapsed time
+            float minutes = elapsedTime / 60f;
+            float hpMult = Mathf.Pow(hpScalePerMinute, minutes);
+            float speedMult = Mathf.Pow(speedScalePerMinute, minutes);
+            float interval = Mathf.Max(minSpawnInterval, baseSpawnInterval - minutes * intervalDecayPerMinute);
+
+            // Spawn an enemy
+            EnemyType type = PickEnemyType();
             spawner.SpawnEnemy(type, currentWave, hpMult, speedMult);
             _enemiesAlive++;
+            totalSpawned++;
+
+            // Boss every N kills
+            if (GameManager.Instance != null && GameManager.Instance.totalKills > 0 &&
+                GameManager.Instance.totalKills % bossEveryNKills == 0)
+            {
+                yield return new WaitForSeconds(0.3f);
+                for (int i = 0; i < 2; i++)
+                {
+                    spawner.SpawnEnemy(EnemyType.Tank, currentWave, hpMult, speedMult);
+                    _enemiesAlive++;
+                    yield return new WaitForSeconds(0.2f);
+                }
+                spawner.SpawnEnemy(EnemyType.Boss, currentWave, hpMult, speedMult);
+                _enemiesAlive++;
+                ScreenShake.Shake(0.25f, 0.4f);
+                SFXManager.PlayBoss();
+            }
 
             yield return new WaitForSeconds(interval);
         }
-
-        // Spawn boss at end of boss wave, with tank escorts
-        if (isBossWave)
-        {
-            yield return new WaitForSeconds(0.5f);
-            // Tank escorts
-            for (int i = 0; i < 3; i++)
-            {
-                spawner.SpawnEnemy(EnemyType.Tank, currentWave, hpMult, speedMult);
-                _enemiesAlive++;
-                yield return new WaitForSeconds(0.3f);
-            }
-            spawner.SpawnEnemy(EnemyType.Boss, currentWave, hpMult, speedMult);
-            _enemiesAlive++;
-            ScreenShake.Shake(0.25f, 0.4f); // Boss entrance shake
-            SFXManager.PlayBoss();
-        }
     }
 
-    private EnemyType PickEnemyType(int index, int total)
+    private EnemyType PickEnemyType()
     {
-        if (currentWave < 3) return EnemyType.Normal;
+        float minutes = elapsedTime / 60f;
 
-        // After wave 3, mix in fast enemies
+        // Early: all normal
+        if (minutes < 0.5f) return EnemyType.Normal;
+
         float roll = Random.value;
-        if (currentWave >= 5 && roll < 0.15f) return EnemyType.Tank;
-        if (roll < 0.4f) return EnemyType.Fast;
+        // Gradually introduce variety
+        if (minutes >= 2f && roll < 0.1f) return EnemyType.Tank;
+        if (minutes >= 0.5f && roll < 0.35f) return EnemyType.Fast;
         return EnemyType.Normal;
     }
 
