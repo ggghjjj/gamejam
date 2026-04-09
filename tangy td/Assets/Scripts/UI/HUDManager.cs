@@ -83,9 +83,9 @@ public class HUDManager : MonoBehaviour
             new Vector2(0.2f, 0.93f), new Vector2(0.4f, 1f), TextAnchor.MiddleLeft);
         _goldText.color = new Color(1f, 0.85f, 0.2f);
 
-        // --- Top center: Wave ---
-        _waveText = CreateText(root, "WaveText", "\u6ce2\u6b21: 0", 28,
-            new Vector2(0.4f, 0.93f), new Vector2(0.65f, 1f), TextAnchor.MiddleCenter);
+        // --- Top center: Enemy count ---
+        _waveText = CreateText(root, "EnemyCount", "\u602a\u7269: 0/0", 28,
+            new Vector2(0.38f, 0.93f), new Vector2(0.65f, 1f), TextAnchor.MiddleCenter);
         _waveText.color = Color.white;
 
         // --- Top right: Level ---
@@ -144,9 +144,11 @@ public class HUDManager : MonoBehaviour
 
     private void UpdateWaveText()
     {
-        if (_waveText != null && GameManager.Instance != null)
+        if (_waveText != null && WaveManager.Instance != null)
         {
-            _waveText.text = $"\u6ce2\u6b21: {GameManager.Instance.currentWave}";
+            int killed = WaveManager.Instance.enemiesKilledThisLevel;
+            int total = WaveManager.Instance.totalEnemiesForLevel;
+            _waveText.text = $"\u602a\u7269: {killed}/{total}";
         }
     }
 

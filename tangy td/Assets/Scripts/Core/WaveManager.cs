@@ -17,9 +17,11 @@ public class WaveManager : MonoBehaviour
     public int bossEveryNKills = 80;           // boss every N kills
 
     [Header("Runtime")]
-    public int currentWave = 0; // purely cosmetic, increments every ~30s
+    public int currentWave = 0;
     public float elapsedTime = 0f;
     public int totalSpawned = 0;
+    public int totalEnemiesForLevel = 100; // set based on level
+    public int enemiesKilledThisLevel = 0;
 
     private int _enemiesAlive = 0;
     private float _waveTimer = 0f;
@@ -37,6 +39,9 @@ public class WaveManager : MonoBehaviour
 
     private void Start()
     {
+        // Total enemies based on level difficulty
+        int level = GameSetup.CurrentLevel;
+        totalEnemiesForLevel = 80 + level * 30; // 80, 110, 140, ...
         StartCoroutine(ContinuousSpawnLoop());
     }
 
@@ -65,6 +70,13 @@ public class WaveManager : MonoBehaviour
 
             elapsedTime += Time.deltaTime;
             _waveTimer += Time.deltaTime;
+
+            // Stop spawning when reached total
+            if (totalSpawned >= totalEnemiesForLevel)
+            {
+                yield return null;
+                continue;
+            }
 
             // Cosmetic wave counter (every 30 seconds)
             if (_waveTimer >= 30f)
@@ -136,6 +148,13 @@ public class WaveManager : MonoBehaviour
     public void OnEnemyDied()
     {
         _enemiesAlive = Mathf.Max(0, _enemiesAlive - 1);
+        enemiesKilledThisLevel++;
+
+        // Victory: all enemies spawned and killed
+        if (totalSpawned >= totalEnemiesForLevel && _enemiesAlive <= 0)
+        {
+            GameManager.Instance?.SetVictory();
+        }
     }
 }
 

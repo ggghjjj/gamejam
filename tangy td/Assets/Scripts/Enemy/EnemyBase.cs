@@ -49,14 +49,15 @@ public class EnemyBase : MonoBehaviour
 
         gameObject.tag = "Enemy";
 
-        // HP bar only for big enemies (Tank/Boss)
+        // HP bar only for big enemies (Tank/Boss) - Boss gets red bar
         if (scale >= 0.4f)
         {
-            CreateHPBar(scale);
+            bool isBoss = scale >= 0.55f;
+            CreateHPBar(scale, isBoss);
         }
     }
 
-    private void CreateHPBar(float scale)
+    private void CreateHPBar(float scale, bool isBoss = false)
     {
         _hpBarRoot = new GameObject("HPBar");
         _hpBarRoot.transform.SetParent(transform, false);
@@ -74,7 +75,7 @@ public class EnemyBase : MonoBehaviour
         var fill = new GameObject("Fill");
         fill.transform.SetParent(_hpBarRoot.transform, false);
         _hpBarFill = fill.AddComponent<SpriteRenderer>();
-        _hpBarFill.sprite = SpriteFactory.CreateSquare(Color.green, 16);
+        _hpBarFill.sprite = SpriteFactory.CreateSquare(isBoss ? new Color(0.9f, 0.15f, 0.15f) : Color.green, 16);
         _hpBarFill.sortingOrder = 10;
     }
 

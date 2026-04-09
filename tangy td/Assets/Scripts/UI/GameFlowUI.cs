@@ -68,39 +68,39 @@ public class GameFlowUI : MonoBehaviour
         _mainMenuPanel.SetActive(true);
     }
 
-    // ==================== Level Select (Scrollable) ====================
+    // ==================== Level Select (Map-style drag) ====================
     private void BuildLevelSelect()
     {
         Canvas canvas = GetComponentInParent<Canvas>();
         if (canvas == null) return;
 
-        _levelSelectPanel = CreateFullPanel(canvas.transform, "LevelSelect", new Color(0.05f, 0.07f, 0.13f, 0.97f));
+        _levelSelectPanel = CreateFullPanel(canvas.transform, "LevelSelect", new Color(0.04f, 0.06f, 0.1f, 0.98f));
 
-        // Title
+        // Title bar
         CreateLabel(_levelSelectPanel.transform, "LSTitle", "\u9009\u62e9\u5173\u5361",
-            new Vector2(0.1f, 0.88f), new Vector2(0.9f, 0.97f),
-            36, new Color(1f, 0.85f, 0.3f), FontStyle.Bold);
+            new Vector2(0.25f, 0.91f), new Vector2(0.75f, 0.99f),
+            32, new Color(1f, 0.85f, 0.3f), FontStyle.Bold);
 
-        // Back button
         CreateButton(_levelSelectPanel.transform, "BtnBack", "\u8fd4\u56de",
-            new Vector2(0.02f, 0.88f), new Vector2(0.12f, 0.97f),
-            new Color(0.4f, 0.4f, 0.4f), 18,
+            new Vector2(0.02f, 0.91f), new Vector2(0.15f, 0.99f),
+            new Color(0.35f, 0.35f, 0.4f), 18,
             () => { _levelSelectPanel.SetActive(false); _mainMenuPanel.SetActive(true); });
 
-        // Scroll area
-        GameObject scrollGO = new GameObject("Scroll");
+        // Scrollable map area
+        GameObject scrollGO = new GameObject("MapScroll");
         scrollGO.transform.SetParent(_levelSelectPanel.transform, false);
         RectTransform scrollRT = scrollGO.AddComponent<RectTransform>();
-        scrollRT.anchorMin = new Vector2(0.05f, 0.02f);
-        scrollRT.anchorMax = new Vector2(0.95f, 0.86f);
+        scrollRT.anchorMin = new Vector2(0f, 0f);
+        scrollRT.anchorMax = new Vector2(1f, 0.9f);
         scrollRT.offsetMin = Vector2.zero;
         scrollRT.offsetMax = Vector2.zero;
 
         ScrollRect scroll = scrollGO.AddComponent<ScrollRect>();
-        scrollGO.AddComponent<Image>().color = new Color(0, 0, 0, 0.3f);
+        Image scrollBG = scrollGO.AddComponent<Image>();
+        scrollBG.color = new Color(0.03f, 0.05f, 0.08f, 1f);
         scrollGO.AddComponent<Mask>().showMaskGraphic = true;
 
-        // Content
+        // Content (tall, draggable)
         GameObject contentGO = new GameObject("Content");
         contentGO.transform.SetParent(scrollGO.transform, false);
         RectTransform contentRT = contentGO.AddComponent<RectTransform>();
@@ -108,76 +108,118 @@ public class GameFlowUI : MonoBehaviour
         contentRT.anchorMax = new Vector2(1, 1);
         contentRT.pivot = new Vector2(0.5f, 1);
 
-        float nodeHeight = 80f;
-        float totalHeight = LevelNames.Length * nodeHeight + 40f;
+        float nodeSpacing = 100f;
+        float totalHeight = LevelNames.Length * nodeSpacing + 80f;
         contentRT.sizeDelta = new Vector2(0, totalHeight);
 
         scroll.content = contentRT;
         scroll.vertical = true;
         scroll.horizontal = false;
+        scroll.movementType = ScrollRect.MovementType.Elastic;
+        scroll.elasticity = 0.1f;
 
-        // Level nodes
+        // Generate nodes with zigzag path
+        float[] xPositions = new float[LevelNames.Length];
         for (int i = 0; i < LevelNames.Length; i++)
         {
-            float yPos = -20f - i * nodeHeight;
+            // Sine wave zigzag
+            xPositions[i] = Mathf.Sin(i * 0.8f) * 120f;
+        }
+
+        for (int i = 0; i < LevelNames.Length; i++)
+        {
+            float yPos = -50f - i * nodeSpacing;
+            float xPos = xPositions[i];
             int levelIdx = i;
 
-            // Chain line to next level
+            // Chain line to next
             if (i < LevelNames.Length - 1)
             {
+                float nextX = xPositions[i + 1];
+                float nextY = -50f - (i + 1) * nodeSpacing;
+
                 GameObject line = new GameObject("Chain");
                 line.transform.SetParent(contentGO.transform, false);
                 Image lineImg = line.AddComponent<Image>();
-                lineImg.color = new Color(0.3f, 0.5f, 1f, 0.4f);
+                lineImg.color = new Color(0.15f, 0.6f, 0.3f, 0.5f);
                 RectTransform lineRT = line.GetComponent<RectTransform>();
                 lineRT.anchorMin = new Vector2(0.5f, 0);
                 lineRT.anchorMax = new Vector2(0.5f, 0);
-                lineRT.pivot = new Vector2(0.5f, 1);
-                lineRT.anchoredPosition = new Vector2(0, yPos - 25f);
-                lineRT.sizeDelta = new Vector2(4f, nodeHeight - 40f);
+                lineRT.pivot = new Vector2(0.5f, 0.5f);
+
+                // Position at midpoint, rotate toward next node
+                float midX = (xPos + nextX) / 2f;
+                float midY = (yPos + nextY) / 2f;
+                lineRT.anchoredPosition = new Vector2(midX, midY);
+                float dist = Vector2.Distance(new Vector2(xPos, yPos), new Vector2(nextX, nextY));
+                lineRT.sizeDelta = new Vector2(4f, dist);
+                float angle = Mathf.Atan2(nextX - xPos, yPos - nextY) * Mathf.Rad2Deg;
+                lineRT.localRotation = Quaternion.Euler(0, 0, angle);
             }
 
-            // Level button
-            float btnX = (i % 2 == 0) ? 0.15f : 0.35f; // zigzag
+            // Circular node
             GameObject nodeGO = new GameObject($"Level_{i}");
             nodeGO.transform.SetParent(contentGO.transform, false);
             Image nodeImg = nodeGO.AddComponent<Image>();
 
-            // Color by difficulty tier
             Color nodeColor;
-            if (i < 5) nodeColor = new Color(0.15f, 0.5f, 0.2f, 0.9f);
-            else if (i < 10) nodeColor = new Color(0.6f, 0.4f, 0.1f, 0.9f);
-            else nodeColor = new Color(0.6f, 0.15f, 0.15f, 0.9f);
+            if (i < 5) nodeColor = new Color(0.15f, 0.55f, 0.2f, 0.95f);
+            else if (i < 10) nodeColor = new Color(0.65f, 0.45f, 0.1f, 0.95f);
+            else nodeColor = new Color(0.65f, 0.15f, 0.15f, 0.95f);
             nodeImg.color = nodeColor;
+
+            // Make it circular using a circle sprite as source
+            // (Unity UI Image is square by default, but we can use rounded approach)
 
             Button nodeBtn = nodeGO.AddComponent<Button>();
             RectTransform nodeRT = nodeGO.GetComponent<RectTransform>();
-            nodeRT.anchorMin = new Vector2(btnX, 0);
-            nodeRT.anchorMax = new Vector2(btnX, 0);
-            nodeRT.pivot = new Vector2(0, 1);
-            nodeRT.anchoredPosition = new Vector2(0, yPos);
-            nodeRT.sizeDelta = new Vector2(350f, 55f);
+            nodeRT.anchorMin = new Vector2(0.5f, 0);
+            nodeRT.anchorMax = new Vector2(0.5f, 0);
+            nodeRT.pivot = new Vector2(0.5f, 0.5f);
+            nodeRT.anchoredPosition = new Vector2(xPos, yPos);
+            nodeRT.sizeDelta = new Vector2(70f, 70f);
 
-            // Level text
-            GameObject textGO = new GameObject("Text");
-            textGO.transform.SetParent(nodeGO.transform, false);
-            Text text = textGO.AddComponent<Text>();
-            text.text = $"\u7b2c{i + 1}\u5173  {LevelNames[i]}";
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = 22;
-            text.color = Color.white;
-            text.alignment = TextAnchor.MiddleCenter;
-            RectTransform textRT = textGO.GetComponent<RectTransform>();
-            textRT.anchorMin = Vector2.zero;
-            textRT.anchorMax = Vector2.one;
-            textRT.offsetMin = Vector2.zero;
-            textRT.offsetMax = Vector2.zero;
+            // Level number inside circle
+            GameObject numGO = new GameObject("Num");
+            numGO.transform.SetParent(nodeGO.transform, false);
+            Text numText = numGO.AddComponent<Text>();
+            numText.text = $"{i + 1}";
+            numText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            numText.fontSize = 24;
+            numText.color = Color.white;
+            numText.fontStyle = FontStyle.Bold;
+            numText.alignment = TextAnchor.MiddleCenter;
+            RectTransform numRT = numGO.GetComponent<RectTransform>();
+            numRT.anchorMin = Vector2.zero;
+            numRT.anchorMax = Vector2.one;
+            numRT.offsetMin = Vector2.zero;
+            numRT.offsetMax = Vector2.zero;
+
+            // Level name below circle
+            GameObject nameGO = new GameObject("Name");
+            nameGO.transform.SetParent(nodeGO.transform, false);
+            Text nameText = nameGO.AddComponent<Text>();
+            nameText.text = LevelNames[i];
+            nameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            nameText.fontSize = 14;
+            nameText.color = new Color(0.8f, 0.8f, 0.8f);
+            nameText.alignment = TextAnchor.UpperCenter;
+            RectTransform nameRT = nameGO.GetComponent<RectTransform>();
+            nameRT.anchorMin = new Vector2(0, 0);
+            nameRT.anchorMax = new Vector2(1, 0);
+            nameRT.pivot = new Vector2(0.5f, 1);
+            nameRT.anchoredPosition = new Vector2(0, -5f);
+            nameRT.sizeDelta = new Vector2(120f, 20f);
+
+            // Jelly hover animation
+            var jelly = nodeGO.AddComponent<JellyHover>();
+            jelly.baseSize = 70f;
 
             nodeBtn.onClick.AddListener(() =>
             {
                 GameSetup.CurrentLevel = levelIdx;
                 if (GameManager.Instance != null)
-                    GameManager.Instance.wavesPerLevel = 5 + levelIdx * 2; // scales
+                    GameManager.Instance.wavesPerLevel = 5 + levelIdx * 2;
                 _levelSelectPanel.SetActive(false);
                 _mainMenuPanel.SetActive(false);
                 GameManager.Instance?.StartGame();

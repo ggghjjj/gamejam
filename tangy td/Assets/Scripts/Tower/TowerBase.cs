@@ -10,10 +10,14 @@ public class TowerBase : MonoBehaviour
     public Stat attackSpeed;
     public Stat range;
     public float totalDamageDealt = 0f;
+    public float maxHP = 100f;
+    public float currentHP;
 
     private float _shootTimer;
     private SpriteRenderer _sr;
     private GameObject _rangeCircle;
+    private SpriteRenderer _hpBarFill;
+    private bool _hovered;
 
     public void Init(TowerData data)
     {
@@ -41,20 +45,52 @@ public class TowerBase : MonoBehaviour
         }
         _sr.sortingOrder = 4;
 
-        // Range indicator
+        // Range indicator (hidden by default, shown on hover)
         _rangeCircle = new GameObject("TowerRange");
         _rangeCircle.transform.SetParent(transform, false);
         _rangeCircle.transform.localPosition = Vector3.zero;
         var rangeSR = _rangeCircle.AddComponent<SpriteRenderer>();
         Color rangeColor = data.color;
-        rangeColor.a = 0.06f;
+        rangeColor.a = 0.1f;
         rangeSR.sprite = SpriteFactory.CreateCircle(rangeColor, 64);
         rangeSR.sortingOrder = 1;
         UpdateRangeVisual();
+        _rangeCircle.SetActive(false); // hidden until hover
+
+        // HP
+        currentHP = maxHP;
+        CreateHPBar(data.spriteScale);
+    }
+
+    private void CreateHPBar(float scale)
+    {
+        var barRoot = new GameObject("HPBar");
+        barRoot.transform.SetParent(transform, false);
+        barRoot.transform.localPosition = new Vector3(0f, 0.7f / scale, 0f);
+        barRoot.transform.localScale = new Vector3(1f / scale, 0.12f / scale, 1f);
+
+        var bg = new GameObject("BG");
+        bg.transform.SetParent(barRoot.transform, false);
+        bg.AddComponent<SpriteRenderer>().sprite = SpriteFactory.CreateSquare(new Color(0.1f, 0.1f, 0.1f, 0.7f), 16);
+        bg.GetComponent<SpriteRenderer>().sortingOrder = 9;
+
+        var fill = new GameObject("Fill");
+        fill.transform.SetParent(barRoot.transform, false);
+        _hpBarFill = fill.AddComponent<SpriteRenderer>();
+        _hpBarFill.sprite = SpriteFactory.CreateSquare(new Color(0.2f, 0.9f, 0.2f), 16);
+        _hpBarFill.sortingOrder = 10;
     }
 
     private void Update()
     {
+        // Hover detection for range circle
+        if (_rangeCircle != null)
+        {
+            Vector3 mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            float dist = Vector2.Distance(transform.position, mouse);
+            _rangeCircle.SetActive(dist < 0.5f);
+        }
+
         if (GameManager.Instance != null && GameManager.Instance.state != GameManager.GameState.Playing)
             return;
 
