@@ -10,14 +10,14 @@ public class WaveManager : MonoBehaviour
     public EnemySpawner spawner;
 
     [Header("Wave Settings")]
-    public int baseEnemiesPerWave = 8;
-    public int extraEnemiesPerWave = 4;
-    public float spawnInterval = 0.8f;
-    public float waveCooldown = 5f;
-    public float hpScalePerWave = 1.12f;
-    public float speedScalePerWave = 1.02f;
+    public int baseEnemiesPerWave = 50;
+    public int extraEnemiesPerWave = 10;
+    public float spawnInterval = 0.4f;
+    public float waveCooldown = 4f;
+    public float hpScalePerWave = 1.15f;
+    public float speedScalePerWave = 1.03f;
     public int bossEveryNWaves = 5;
-    public int maxEnemiesPerWave = 50;
+    public int maxEnemiesPerWave = 200;
 
     [Header("Runtime")]
     public int currentWave = 0;
@@ -90,7 +90,7 @@ public class WaveManager : MonoBehaviour
         int count = Mathf.Min(baseEnemiesPerWave + (currentWave - 1) * extraEnemiesPerWave, maxEnemiesPerWave);
         float hpMult = Mathf.Pow(hpScalePerWave, currentWave - 1);
         float speedMult = Mathf.Pow(speedScalePerWave, currentWave - 1);
-        float interval = Mathf.Max(0.15f, spawnInterval - currentWave * 0.04f);
+        float interval = Mathf.Max(0.1f, spawnInterval - currentWave * 0.03f);
 
         bool isBossWave = (currentWave % bossEveryNWaves == 0);
 

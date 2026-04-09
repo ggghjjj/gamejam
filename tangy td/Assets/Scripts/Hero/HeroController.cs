@@ -6,10 +6,10 @@ public class HeroController : MonoBehaviour
 {
     [Header("Stats (Stat System)")]
     public Stat damage = new Stat(10f);
-    public Stat attackSpeed = new Stat(1f);
+    public Stat attackSpeed = new Stat(3f);       // 3 shots/sec (was 1)
     public Stat moveSpeedStat = new Stat(5f);
-    public Stat attackRange = new Stat(3f);
-    public Stat maxHPStat = new Stat(100f);
+    public Stat attackRange = new Stat(5f);        // range 5 (was 3)
+    public Stat maxHPStat = new Stat(150f);        // more HP to survive early
 
     [Header("Runtime")]
     public float currentHP;

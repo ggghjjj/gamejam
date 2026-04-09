@@ -11,10 +11,10 @@ public class GameManager : MonoBehaviour
     public int currentWave = 0;
 
     [Header("Player Stats")]
-    public int playerLives = 20;
+    public int playerLives = 30;           // more lives (was 20)
     public int experience = 0;
     public int level = 1;
-    public int expToNextLevel = 50;
+    public int expToNextLevel = 30;        // faster first level-up (was 50)
     public float expScalePerLevel = 1.3f;
     public int totalKills = 0;
 

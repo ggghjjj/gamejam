@@ -7,9 +7,9 @@ public class EnemySpawner : MonoBehaviour
     public WaypointPath[] paths; // multiple paths for variety
 
     [Header("Base Enemy Stats")]
-    public float baseHP = 30f;
-    public float baseSpeed = 2f;
-    public int baseExp = 10;
+    public float baseHP = 15f;          // weaker early (was 30)
+    public float baseSpeed = 1.5f;      // slower early (was 2)
+    public int baseExp = 8;
 
     public void SpawnEnemy(EnemyType type, int wave, float hpMult, float speedMult)
     {
