@@ -44,7 +44,9 @@ public class EnemyBase : MonoBehaviour
         _color = color;
 
         transform.localScale = Vector3.one * scale;
-        transform.position = _path.GetPosition(0);
+        // Spawn at path start with slight random offset to avoid stacking
+        Vector2 offset = Random.insideUnitCircle * 0.15f;
+        transform.position = _path.GetPosition(0) + (Vector3)offset;
 
         var col = GetComponent<CircleCollider2D>();
         col.radius = 0.4f;

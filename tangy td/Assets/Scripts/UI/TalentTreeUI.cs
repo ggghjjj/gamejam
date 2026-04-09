@@ -89,9 +89,10 @@ public class TalentTreeUI : MonoBehaviour
             new Vector2(0.65f, 0.05f), new Vector2(0.85f, 0.12f),
             new Color(0.7f, 0.2f, 0.2f), 18, () => { PlayerSave.ResetTalents(); UpdateAll(); });
 
+        var panelRef = _panel; // capture for lambda
         MakeButton(_panel.transform, "DONE", "\u5b8c\u6210",
             new Vector2(0.35f, 0.05f), new Vector2(0.55f, 0.12f),
-            new Color(0.2f, 0.6f, 0.3f), 18, () => Hide());
+            new Color(0.2f, 0.6f, 0.3f), 18, () => { if (panelRef != null) panelRef.SetActive(false); });
 
         // Debug: add test diamonds
         MakeButton(_panel.transform, "DEBUG", "+100\u94bb\u77f3(\u6d4b\u8bd5)",

@@ -257,11 +257,11 @@ public class MapGenerator : MonoBehaviour
             // Trunk
             var trunk = new GameObject("Trunk");
             trunk.transform.SetParent(tree.transform, false);
-            trunk.transform.localScale = new Vector3(0.1f, 0.18f, 1f);
-            trunk.transform.localPosition = new Vector3(0f, -0.04f, 0f);
+            trunk.transform.localScale = new Vector3(0.12f, 0.2f, 1f);
+            trunk.transform.localPosition = new Vector3(0f, -0.06f, 0f);
             var trunkSR = trunk.AddComponent<SpriteRenderer>();
-            trunkSR.sprite = SpriteFactory.CreateSquare(new Color(0.35f, 0.2f, 0.1f), 8);
-            trunkSR.sortingOrder = 3;
+            trunkSR.sprite = SpriteFactory.CreateSquare(new Color(0.4f, 0.22f, 0.1f), 8);
+            trunkSR.sortingOrder = 5; // above ground, below crown tops
 
             // Crown layers
             float crownSize = Random.Range(0.25f, 0.4f); // 1.5x bigger trees

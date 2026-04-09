@@ -120,6 +120,93 @@ public class HUDManager : MonoBehaviour
         _waveAnnounce.color = Color.yellow;
         _waveAnnounce.fontStyle = FontStyle.Bold;
         _waveAnnounce.gameObject.SetActive(false);
+
+        // --- Pause button (top right corner) ---
+        BuildPauseUI(root);
+    }
+
+    private GameObject _pausePanel;
+
+    private void BuildPauseUI(Transform root)
+    {
+        // Small pause button
+        GameObject pauseBtnGO = new GameObject("PauseBtn");
+        pauseBtnGO.transform.SetParent(root, false);
+        Image pauseImg = pauseBtnGO.AddComponent<Image>();
+        pauseImg.color = new Color(0.3f, 0.3f, 0.4f, 0.8f);
+        Button pauseBtn = pauseBtnGO.AddComponent<Button>();
+        RectTransform pauseRT = pauseBtnGO.GetComponent<RectTransform>();
+        pauseRT.anchorMin = new Vector2(0.92f, 0.85f);
+        pauseRT.anchorMax = new Vector2(1f, 0.92f);
+        pauseRT.offsetMin = Vector2.zero;
+        pauseRT.offsetMax = Vector2.zero;
+
+        var pText = new GameObject("T"); pText.transform.SetParent(pauseBtnGO.transform, false);
+        Text pt = pText.AddComponent<Text>();
+        pt.text = "||"; pt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        pt.fontSize = 22; pt.color = Color.white; pt.alignment = TextAnchor.MiddleCenter;
+        pt.fontStyle = FontStyle.Bold;
+        var ptr = pText.GetComponent<RectTransform>();
+        ptr.anchorMin = Vector2.zero; ptr.anchorMax = Vector2.one;
+        ptr.offsetMin = ptr.offsetMax = Vector2.zero;
+
+        // Pause overlay panel (hidden)
+        _pausePanel = new GameObject("PauseOverlay");
+        _pausePanel.transform.SetParent(root, false);
+        Image overlayImg = _pausePanel.AddComponent<Image>();
+        overlayImg.color = new Color(0, 0, 0, 0.7f);
+        var ort = _pausePanel.GetComponent<RectTransform>();
+        ort.anchorMin = Vector2.zero; ort.anchorMax = Vector2.one;
+        ort.offsetMin = ort.offsetMax = Vector2.zero;
+
+        // Paused title
+        var ptitle = new GameObject("Title"); ptitle.transform.SetParent(_pausePanel.transform, false);
+        Text tt = ptitle.AddComponent<Text>();
+        tt.text = "\u6682\u505c"; tt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        tt.fontSize = 48; tt.color = Color.white; tt.alignment = TextAnchor.MiddleCenter;
+        tt.fontStyle = FontStyle.Bold;
+        var trt = ptitle.GetComponent<RectTransform>();
+        trt.anchorMin = new Vector2(0.2f, 0.55f); trt.anchorMax = new Vector2(0.8f, 0.7f);
+        trt.offsetMin = trt.offsetMax = Vector2.zero;
+
+        // Resume button
+        CreatePauseButton(_pausePanel.transform, "\u7ee7\u7eed\u6e38\u620f",
+            new Vector2(0.25f, 0.35f), new Vector2(0.75f, 0.48f),
+            new Color(0.2f, 0.6f, 0.3f), () => {
+                _pausePanel.SetActive(false);
+                GameManager.Instance?.ResumeGame();
+            });
+
+        // Back to menu button
+        CreatePauseButton(_pausePanel.transform, "\u8fd4\u56de\u4e3b\u83dc\u5355",
+            new Vector2(0.25f, 0.2f), new Vector2(0.75f, 0.33f),
+            new Color(0.6f, 0.3f, 0.2f), () => {
+                Time.timeScale = 1f;
+                GameManager.SkipMenuOnLoad = false;
+                GameManager.Instance?.RestartGame();
+            });
+
+        _pausePanel.SetActive(false);
+
+        pauseBtn.onClick.AddListener(() => {
+            GameManager.Instance?.PauseGame();
+            _pausePanel.SetActive(true);
+        });
+    }
+
+    private void CreatePauseButton(Transform parent, string label, Vector2 amin, Vector2 amax, Color c, UnityEngine.Events.UnityAction action)
+    {
+        var go = new GameObject("Btn"); go.transform.SetParent(parent, false);
+        go.AddComponent<Image>().color = c;
+        go.AddComponent<Button>().onClick.AddListener(action);
+        var r = go.GetComponent<RectTransform>();
+        r.anchorMin = amin; r.anchorMax = amax; r.offsetMin = r.offsetMax = Vector2.zero;
+        var tgo = new GameObject("T"); tgo.transform.SetParent(go.transform, false);
+        var t = tgo.AddComponent<Text>();
+        t.text = label; t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        t.fontSize = 26; t.color = Color.white; t.fontStyle = FontStyle.Bold; t.alignment = TextAnchor.MiddleCenter;
+        var tr = tgo.GetComponent<RectTransform>();
+        tr.anchorMin = Vector2.zero; tr.anchorMax = Vector2.one; tr.offsetMin = tr.offsetMax = Vector2.zero;
     }
 
     private void UpdateLives(int lives)
