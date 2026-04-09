@@ -25,11 +25,16 @@ public class UpgradeManager : MonoBehaviour
     public System.Action<List<UpgradeData>> OnUpgradeChoicesReady; // 3 choices
     public System.Action<UpgradeData> OnUpgradeApplied;
 
+    // Reroll
+    public int rerollsPerGame = 3;
+    public int rerollsRemaining;
+
     private void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         BuildDefaultUpgradePool();
+        rerollsRemaining = rerollsPerGame;
     }
 
     private void Start()
@@ -95,11 +100,17 @@ public class UpgradeManager : MonoBehaviour
         acquiredUpgrades.Add(upgrade);
         ApplyEffect(upgrade);
         OnUpgradeApplied?.Invoke(upgrade);
-
-        // Check for synthesis
         CheckSynthesis();
-
         GameManager.Instance?.ResumeGame();
+    }
+
+    public bool RerollChoices()
+    {
+        if (rerollsRemaining <= 0) return false;
+        rerollsRemaining--;
+        List<UpgradeData> choices = GetRandomChoices(3);
+        OnUpgradeChoicesReady?.Invoke(choices);
+        return true;
     }
 
     private void ApplyEffect(UpgradeData upgrade)
@@ -110,19 +121,19 @@ public class UpgradeManager : MonoBehaviour
         {
             case UpgradeEffect.AttackDamage:
                 bonusDamage += upgrade.value;
-                if (hero != null) hero.attackDamage += upgrade.value;
+                if (hero != null) hero.damage.AddFlat(upgrade.value);
                 break;
             case UpgradeEffect.AttackSpeed:
                 attackSpeedMult += upgrade.value / 100f;
-                if (hero != null) hero.attackSpeed *= (1f + upgrade.value / 100f);
+                if (hero != null) hero.attackSpeed.AddMultiplier(upgrade.value);
                 break;
             case UpgradeEffect.MoveSpeed:
                 moveSpeedMult += upgrade.value / 100f;
-                if (hero != null) hero.moveSpeed *= (1f + upgrade.value / 100f);
+                if (hero != null) hero.moveSpeedStat.AddMultiplier(upgrade.value);
                 break;
             case UpgradeEffect.AttackRange:
                 bonusRange += upgrade.value;
-                if (hero != null) hero.attackRange += upgrade.value;
+                if (hero != null) hero.attackRange.AddFlat(upgrade.value);
                 break;
             case UpgradeEffect.MultiShot:
                 extraProjectiles += (int)upgrade.value;
@@ -132,7 +143,7 @@ public class UpgradeManager : MonoBehaviour
                 break;
             case UpgradeEffect.MaxHP:
                 bonusMaxHP += upgrade.value;
-                if (hero != null) { hero.maxHP += upgrade.value; hero.currentHP += upgrade.value; }
+                if (hero != null) { hero.maxHPStat.AddFlat(upgrade.value); hero.currentHP += upgrade.value; }
                 break;
             case UpgradeEffect.HPRegen:
                 hpRegen += upgrade.value;
@@ -175,7 +186,7 @@ public class UpgradeManager : MonoBehaviour
         if (upgrade.upgradeName == "\u72c2\u6218\u58eb") // berserker: also +30% attack speed
         {
             attackSpeedMult += 0.3f;
-            if (hero != null) hero.attackSpeed *= 1.3f;
+            if (hero != null) hero.attackSpeed.AddMultiplier(30f);
         }
         else if (upgrade.upgradeName == "\u72d9\u51fb\u624b") // sniper: also +20% crit
         {

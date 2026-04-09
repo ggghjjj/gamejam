@@ -4,15 +4,22 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class HeroController : MonoBehaviour
 {
-    [Header("Movement")]
-    public float moveSpeed = 5f;
+    [Header("Stats (Stat System)")]
+    public Stat damage = new Stat(10f);
+    public Stat attackSpeed = new Stat(1f);
+    public Stat moveSpeedStat = new Stat(5f);
+    public Stat attackRange = new Stat(3f);
+    public Stat maxHPStat = new Stat(100f);
 
-    [Header("Stats")]
-    public float maxHP = 100f;
+    [Header("Runtime")]
     public float currentHP;
-    public float attackDamage = 10f;
-    public float attackSpeed = 1f;    // shots per second
-    public float attackRange = 3f;
+
+    // Convenience accessors for other scripts
+    public float attackDamage => damage.Value;
+    public float fireRate => attackSpeed.Value;
+    public float moveSpeed => moveSpeedStat.Value;
+    public float range => attackRange.Value;
+    public float maxHP => maxHPStat.Value;
 
     private Rigidbody2D _rb;
     private Vector2 _moveInput;
@@ -23,7 +30,6 @@ public class HeroController : MonoBehaviour
         _rb.gravityScale = 0f;
         _rb.freezeRotation = true;
 
-        // Generate cyan hero sprite
         var sr = GetComponent<SpriteRenderer>();
         sr.sprite = SpriteFactory.CreateSquare(new Color(0f, 0.9f, 0.9f));
         sr.sortingOrder = 10;
@@ -38,7 +44,6 @@ public class HeroController : MonoBehaviour
         _moveInput.x = Input.GetAxisRaw("Horizontal");
         _moveInput.y = Input.GetAxisRaw("Vertical");
 
-        // Bobbing animation when moving
         if (_moveInput.sqrMagnitude > 0.01f)
         {
             float bob = Mathf.Sin(Time.time * 8f) * 0.05f;
@@ -54,7 +59,6 @@ public class HeroController : MonoBehaviour
     {
         Vector2 newPos = _rb.position + _moveInput.normalized * moveSpeed * Time.fixedDeltaTime;
 
-        // Clamp to camera bounds
         Camera cam = Camera.main;
         if (cam != null)
         {
@@ -68,9 +72,9 @@ public class HeroController : MonoBehaviour
         _rb.MovePosition(newPos);
     }
 
-    public void TakeDamage(float damage)
+    public void TakeDamage(float dmg)
     {
-        currentHP -= damage;
+        currentHP -= dmg;
         if (currentHP <= 0f)
         {
             currentHP = 0f;

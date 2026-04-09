@@ -24,7 +24,7 @@ public class RangeIndicator : MonoBehaviour
         // Hero is scaled 0.5, sprite is 1 unit = 1 world unit at scale 1
         // We need the circle to cover attackRange radius in world space
         float heroScale = transform.parent != null ? transform.parent.localScale.x : 1f;
-        float diameter = (_hero.attackRange * 2f) / heroScale;
+        float diameter = (_hero.range * 2f) / heroScale;
         transform.localScale = Vector3.one * diameter;
     }
 }

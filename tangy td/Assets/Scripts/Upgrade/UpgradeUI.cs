@@ -6,6 +6,8 @@ public class UpgradeUI : MonoBehaviour
 {
     private GameObject _panel;
     private List<GameObject> _cards = new List<GameObject>();
+    private Text _rerollText;
+    private Button _rerollBtn;
 
     private void Start()
     {
@@ -55,6 +57,38 @@ public class UpgradeUI : MonoBehaviour
         titleRT.anchorMax = new Vector2(0.9f, 0.9f);
         titleRT.offsetMin = Vector2.zero;
         titleRT.offsetMax = Vector2.zero;
+
+        // Reroll button
+        GameObject rerollGO = new GameObject("RerollBtn");
+        rerollGO.transform.SetParent(_panel.transform, false);
+        Image rerollImg = rerollGO.AddComponent<Image>();
+        rerollImg.color = new Color(0.4f, 0.4f, 0.5f);
+        _rerollBtn = rerollGO.AddComponent<Button>();
+        RectTransform rerollRT = rerollGO.GetComponent<RectTransform>();
+        rerollRT.anchorMin = new Vector2(0.35f, 0.08f);
+        rerollRT.anchorMax = new Vector2(0.65f, 0.16f);
+        rerollRT.offsetMin = Vector2.zero;
+        rerollRT.offsetMax = Vector2.zero;
+
+        GameObject rerollTextGO = new GameObject("Text");
+        rerollTextGO.transform.SetParent(rerollGO.transform, false);
+        _rerollText = rerollTextGO.AddComponent<Text>();
+        _rerollText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        _rerollText.fontSize = 20;
+        _rerollText.color = Color.white;
+        _rerollText.alignment = TextAnchor.MiddleCenter;
+        _rerollText.fontStyle = FontStyle.Bold;
+        RectTransform rerollTextRT = rerollTextGO.GetComponent<RectTransform>();
+        rerollTextRT.anchorMin = Vector2.zero;
+        rerollTextRT.anchorMax = Vector2.one;
+        rerollTextRT.offsetMin = Vector2.zero;
+        rerollTextRT.offsetMax = Vector2.zero;
+
+        _rerollBtn.onClick.AddListener(() =>
+        {
+            UpgradeManager.Instance?.RerollChoices();
+            UpdateRerollText();
+        });
     }
 
     private void ShowChoices(List<UpgradeData> choices)
@@ -77,6 +111,16 @@ public class UpgradeUI : MonoBehaviour
         }
 
         _panel.SetActive(true);
+        UpdateRerollText();
+    }
+
+    private void UpdateRerollText()
+    {
+        int remaining = UpgradeManager.Instance != null ? UpgradeManager.Instance.rerollsRemaining : 0;
+        if (_rerollText != null)
+            _rerollText.text = $"\u5237\u65b0 ({remaining})";
+        if (_rerollBtn != null)
+            _rerollBtn.interactable = remaining > 0;
     }
 
     private GameObject CreateCard(UpgradeData data, float xAnchor, float width)

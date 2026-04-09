@@ -10,13 +10,14 @@ public class WaveManager : MonoBehaviour
     public EnemySpawner spawner;
 
     [Header("Wave Settings")]
-    public int baseEnemiesPerWave = 4;
-    public int extraEnemiesPerWave = 2;
-    public float spawnInterval = 1.0f;
+    public int baseEnemiesPerWave = 8;
+    public int extraEnemiesPerWave = 4;
+    public float spawnInterval = 0.8f;
     public float waveCooldown = 5f;
-    public float hpScalePerWave = 1.15f;
-    public float speedScalePerWave = 1.03f;
+    public float hpScalePerWave = 1.12f;
+    public float speedScalePerWave = 1.02f;
     public int bossEveryNWaves = 5;
+    public int maxEnemiesPerWave = 50;
 
     [Header("Runtime")]
     public int currentWave = 0;
@@ -86,11 +87,10 @@ public class WaveManager : MonoBehaviour
 
     private IEnumerator SpawnWaveEnemies()
     {
-        int count = baseEnemiesPerWave + (currentWave - 1) * extraEnemiesPerWave;
+        int count = Mathf.Min(baseEnemiesPerWave + (currentWave - 1) * extraEnemiesPerWave, maxEnemiesPerWave);
         float hpMult = Mathf.Pow(hpScalePerWave, currentWave - 1);
         float speedMult = Mathf.Pow(speedScalePerWave, currentWave - 1);
-        // Spawn interval decreases over waves (faster spawns later)
-        float interval = Mathf.Max(0.3f, spawnInterval - currentWave * 0.03f);
+        float interval = Mathf.Max(0.15f, spawnInterval - currentWave * 0.04f);
 
         bool isBossWave = (currentWave % bossEveryNWaves == 0);
 
@@ -111,10 +111,17 @@ public class WaveManager : MonoBehaviour
             yield return new WaitForSeconds(interval);
         }
 
-        // Spawn boss at end of boss wave
+        // Spawn boss at end of boss wave, with tank escorts
         if (isBossWave)
         {
             yield return new WaitForSeconds(0.5f);
+            // Tank escorts
+            for (int i = 0; i < 3; i++)
+            {
+                spawner.SpawnEnemy(EnemyType.Tank, currentWave, hpMult, speedMult);
+                _enemiesAlive++;
+                yield return new WaitForSeconds(0.3f);
+            }
             spawner.SpawnEnemy(EnemyType.Boss, currentWave, hpMult, speedMult);
             _enemiesAlive++;
         }

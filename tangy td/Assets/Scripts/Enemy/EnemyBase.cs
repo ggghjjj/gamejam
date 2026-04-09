@@ -19,7 +19,9 @@ public class EnemyBase : MonoBehaviour
     private Color _color;
     private float _baseScale;
     private float _hitScaleTimer;
-    private float _bobOffset; // random offset so enemies don't bob in sync
+    private float _bobOffset;
+    private SpriteRenderer _hpBarFill;
+    private GameObject _hpBarRoot;
 
     public void Init(WaypointPath path, float hp, float speed, int exp, Color color, float scale = 1f)
     {
@@ -44,6 +46,31 @@ public class EnemyBase : MonoBehaviour
         col.radius = 0.4f;
 
         gameObject.tag = "Enemy";
+
+        // HP bar
+        CreateHPBar(scale);
+    }
+
+    private void CreateHPBar(float scale)
+    {
+        _hpBarRoot = new GameObject("HPBar");
+        _hpBarRoot.transform.SetParent(transform, false);
+        _hpBarRoot.transform.localPosition = new Vector3(0f, 0.7f / scale, 0f);
+        _hpBarRoot.transform.localScale = new Vector3(1f / scale, 0.15f / scale, 1f);
+
+        // Background (dark)
+        var bg = new GameObject("BG");
+        bg.transform.SetParent(_hpBarRoot.transform, false);
+        var bgSR = bg.AddComponent<SpriteRenderer>();
+        bgSR.sprite = SpriteFactory.CreateSquare(new Color(0.15f, 0.15f, 0.15f, 0.8f), 16);
+        bgSR.sortingOrder = 9;
+
+        // Fill (green → red)
+        var fill = new GameObject("Fill");
+        fill.transform.SetParent(_hpBarRoot.transform, false);
+        _hpBarFill = fill.AddComponent<SpriteRenderer>();
+        _hpBarFill.sprite = SpriteFactory.CreateSquare(Color.green, 16);
+        _hpBarFill.sortingOrder = 10;
     }
 
     private void Update()
@@ -107,11 +134,23 @@ public class EnemyBase : MonoBehaviour
             StartCoroutine(FlashWhite());
         }
 
+        UpdateHPBar();
+
         if (currentHP <= 0f)
         {
             currentHP = 0f;
             Die(grantExp: true);
         }
+    }
+
+    private void UpdateHPBar()
+    {
+        if (_hpBarFill == null) return;
+        float ratio = Mathf.Clamp01(currentHP / maxHP);
+        _hpBarFill.transform.localScale = new Vector3(ratio, 1f, 1f);
+        _hpBarFill.transform.localPosition = new Vector3((ratio - 1f) * 0.5f, 0f, 0f);
+        // Color: green → yellow → red
+        _hpBarFill.color = Color.Lerp(Color.red, Color.green, ratio);
     }
 
     private System.Collections.IEnumerator FlashWhite()

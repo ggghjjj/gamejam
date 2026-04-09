@@ -21,7 +21,7 @@ public class HeroShooter : MonoBehaviour
         Transform target = FindNearestEnemy();
         if (target == null) return;
 
-        _shootTimer = 1f / _hero.attackSpeed;
+        _shootTimer = 1f / _hero.fireRate;
 
         Vector2 baseDir = (target.position - transform.position).normalized;
         SpawnBullet(baseDir);
@@ -38,7 +38,7 @@ public class HeroShooter : MonoBehaviour
 
     private Transform FindNearestEnemy()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, _hero.attackRange);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, _hero.range);
         Transform nearest = null;
         float minDist = float.MaxValue;
 
@@ -97,6 +97,6 @@ public class HeroShooter : MonoBehaviour
         if (_hero == null) _hero = GetComponent<HeroController>();
         if (_hero == null) return;
         Gizmos.color = new Color(0.2f, 0.4f, 0.9f, 0.2f);
-        Gizmos.DrawWireSphere(transform.position, _hero.attackRange);
+        Gizmos.DrawWireSphere(transform.position, _hero.range);
     }
 }
