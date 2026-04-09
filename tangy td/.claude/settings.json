@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'FILE=\"$CLAUDE_TOOL_PARAM_FILE_PATH\"; if [[ \"$FILE\" == *.cs ]]; then echo \"[Unity 操作提醒] 脚本已修改: $(basename $FILE)\"; echo \"  - 回到 Unity 编辑器，等待自动编译（底部进度条）\"; echo \"  - 如有编译错误，查看 Console 窗口\"; echo \"  - 如新增了脚本，确认 GameSetup.cs 中已集成\"; echo \"  - 测试: 点击 Play 按钮验证\"; fi'"
+          }
+        ]
+      }
+    ]
+  }
+}

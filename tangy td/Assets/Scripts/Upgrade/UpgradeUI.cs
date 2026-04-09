@@ -45,7 +45,7 @@ public class UpgradeUI : MonoBehaviour
         GameObject titleGO = new GameObject("Title");
         titleGO.transform.SetParent(_panel.transform, false);
         Text titleText = titleGO.AddComponent<Text>();
-        titleText.text = "LEVEL UP! Choose an upgrade:";
+        titleText.text = "\u5347\u7ea7\uff01\u8bf7\u9009\u62e9\u4e00\u4e2a\u5f3a\u5316:";
         titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         titleText.fontSize = 28;
         titleText.color = Color.yellow;
@@ -148,7 +148,7 @@ public class UpgradeUI : MonoBehaviour
         GameObject btnTextGO = new GameObject("Text");
         btnTextGO.transform.SetParent(btnGO.transform, false);
         Text btnText = btnTextGO.AddComponent<Text>();
-        btnText.text = "SELECT";
+        btnText.text = "\u9009\u62e9";
         btnText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         btnText.fontSize = 18;
         btnText.color = Color.white;

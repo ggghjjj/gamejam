@@ -88,8 +88,8 @@ public class GameSetup : MonoBehaviour
         upgradeUIGO.transform.SetParent(canvasGO.transform, false);
         upgradeUIGO.AddComponent<UpgradeUI>();
 
-        Debug.Log("=== Tangy TD Scene Setup Complete ===");
-        Debug.Log("WASD to move. Auto-shoot enemies in range.");
-        Debug.Log("Level up to get upgrade choices!");
+        Debug.Log("=== Tangy TD \u573a\u666f\u642d\u5efa\u5b8c\u6210 ===");
+        Debug.Log("WASD \u79fb\u52a8\u82f1\u96c4\uff0c\u81ea\u52a8\u5c04\u51fb\u8303\u56f4\u5185\u654c\u4eba");
+        Debug.Log("\u5347\u7ea7\u540e\u53ef\u9009\u62e9\u5f3a\u5316!");
     }
 }

@@ -170,16 +170,16 @@ public class UpgradeManager : MonoBehaviour
     private void BuildDefaultUpgradePool()
     {
         allUpgrades.Clear();
-        allUpgrades.Add(CreateUpgrade("Sharp Blade", "+5 Attack Damage", UpgradeEffect.AttackDamage, 5f, new Color(1f, 0.3f, 0.3f)));
-        allUpgrades.Add(CreateUpgrade("Swift Hands", "+20% Attack Speed", UpgradeEffect.AttackSpeed, 20f, new Color(1f, 0.8f, 0.2f)));
-        allUpgrades.Add(CreateUpgrade("Wind Boots", "+15% Move Speed", UpgradeEffect.MoveSpeed, 15f, new Color(0.3f, 0.9f, 1f)));
-        allUpgrades.Add(CreateUpgrade("Eagle Eye", "+1 Attack Range", UpgradeEffect.AttackRange, 1f, new Color(0.5f, 1f, 0.5f)));
-        allUpgrades.Add(CreateUpgrade("Multi Shot", "+1 Projectile", UpgradeEffect.MultiShot, 1f, new Color(0.9f, 0.5f, 0.1f)));
-        allUpgrades.Add(CreateUpgrade("Pierce Arrow", "Bullets pierce enemies", UpgradeEffect.PierceShot, 1f, new Color(0.7f, 0.3f, 1f)));
-        allUpgrades.Add(CreateUpgrade("Vitality", "+25 Max HP", UpgradeEffect.MaxHP, 25f, new Color(0.2f, 0.9f, 0.2f)));
-        allUpgrades.Add(CreateUpgrade("Regeneration", "+2 HP/sec", UpgradeEffect.HPRegen, 2f, new Color(0.4f, 1f, 0.6f)));
-        allUpgrades.Add(CreateUpgrade("Wisdom", "+25% Exp Gain", UpgradeEffect.ExpBonus, 25f, new Color(0.6f, 0.6f, 1f)));
-        allUpgrades.Add(CreateUpgrade("Lucky Strike", "+10% Crit Chance", UpgradeEffect.CritChance, 10f, new Color(1f, 1f, 0.3f)));
+        allUpgrades.Add(CreateUpgrade("\u5229\u5203", "\u653b\u51fb\u529b +5", UpgradeEffect.AttackDamage, 5f, new Color(1f, 0.3f, 0.3f)));
+        allUpgrades.Add(CreateUpgrade("\u8fc5\u6377\u4e4b\u624b", "\u653b\u901f +20%", UpgradeEffect.AttackSpeed, 20f, new Color(1f, 0.8f, 0.2f)));
+        allUpgrades.Add(CreateUpgrade("\u98ce\u4e4b\u9774", "\u79fb\u901f +15%", UpgradeEffect.MoveSpeed, 15f, new Color(0.3f, 0.9f, 1f)));
+        allUpgrades.Add(CreateUpgrade("\u9e70\u773c", "\u653b\u51fb\u8303\u56f4 +1", UpgradeEffect.AttackRange, 1f, new Color(0.5f, 1f, 0.5f)));
+        allUpgrades.Add(CreateUpgrade("\u591a\u91cd\u5c04\u51fb", "\u989d\u5916\u5f39\u5c04\u7269 +1", UpgradeEffect.MultiShot, 1f, new Color(0.9f, 0.5f, 0.1f)));
+        allUpgrades.Add(CreateUpgrade("\u7a7f\u900f\u4e4b\u7bad", "\u5b50\u5f39\u53ef\u7a7f\u900f\u654c\u4eba", UpgradeEffect.PierceShot, 1f, new Color(0.7f, 0.3f, 1f)));
+        allUpgrades.Add(CreateUpgrade("\u751f\u547d\u529b", "\u6700\u5927\u751f\u547d +25", UpgradeEffect.MaxHP, 25f, new Color(0.2f, 0.9f, 0.2f)));
+        allUpgrades.Add(CreateUpgrade("\u518d\u751f", "\u6bcf\u79d2\u56de\u590d 2 \u751f\u547d", UpgradeEffect.HPRegen, 2f, new Color(0.4f, 1f, 0.6f)));
+        allUpgrades.Add(CreateUpgrade("\u667a\u6167", "\u7ecf\u9a8c\u83b7\u53d6 +25%", UpgradeEffect.ExpBonus, 25f, new Color(0.6f, 0.6f, 1f)));
+        allUpgrades.Add(CreateUpgrade("\u5e78\u8fd0\u4e00\u51fb", "\u66b4\u51fb\u7387 +10%", UpgradeEffect.CritChance, 10f, new Color(1f, 1f, 0.3f)));
     }
 
     private UpgradeData CreateUpgrade(string name, string desc, UpgradeEffect effect, float value, Color color)

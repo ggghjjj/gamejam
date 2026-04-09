@@ -71,17 +71,17 @@ public class HUDManager : MonoBehaviour
         Transform root = canvas.transform;
 
         // --- Top left: Lives ---
-        _livesText = CreateText(root, "LivesText", "HP: 20", 20,
+        _livesText = CreateText(root, "LivesText", "\u751f\u547d: 20", 20,
             new Vector2(0f, 0.92f), new Vector2(0.2f, 1f), TextAnchor.MiddleLeft);
         _livesText.color = new Color(1f, 0.4f, 0.4f);
 
         // --- Top center: Wave ---
-        _waveText = CreateText(root, "WaveText", "Wave: 0", 22,
+        _waveText = CreateText(root, "WaveText", "\u6ce2\u6b21: 0", 22,
             new Vector2(0.35f, 0.92f), new Vector2(0.65f, 1f), TextAnchor.MiddleCenter);
         _waveText.color = Color.white;
 
         // --- Top right: Level ---
-        _levelText = CreateText(root, "LevelText", "Lv: 1", 20,
+        _levelText = CreateText(root, "LevelText", "\u7b49\u7ea7: 1", 20,
             new Vector2(0.8f, 0.92f), new Vector2(1f, 1f), TextAnchor.MiddleRight);
         _levelText.color = new Color(0.6f, 0.8f, 1f);
 
@@ -116,7 +116,7 @@ public class HUDManager : MonoBehaviour
 
     private void UpdateLives(int lives)
     {
-        if (_livesText != null) _livesText.text = $"HP: {lives}";
+        if (_livesText != null) _livesText.text = $"\u751f\u547d: {lives}";
     }
 
     private void UpdateExp(int current, int required)
@@ -133,7 +133,7 @@ public class HUDManager : MonoBehaviour
     {
         if (_waveText != null && GameManager.Instance != null)
         {
-            _waveText.text = $"Wave: {GameManager.Instance.currentWave}";
+            _waveText.text = $"\u6ce2\u6b21: {GameManager.Instance.currentWave}";
         }
     }
 
@@ -141,7 +141,7 @@ public class HUDManager : MonoBehaviour
     {
         if (_levelText != null && GameManager.Instance != null)
         {
-            _levelText.text = $"Lv: {GameManager.Instance.level}";
+            _levelText.text = $"\u7b49\u7ea7: {GameManager.Instance.level}";
         }
     }
 
@@ -149,7 +149,7 @@ public class HUDManager : MonoBehaviour
     {
         if (_waveAnnounce != null)
         {
-            _waveAnnounce.text = $"-- Wave {wave} --";
+            _waveAnnounce.text = $"-- \u7b2c {wave} \u6ce2 --";
             _waveAnnounce.gameObject.SetActive(true);
             _announceTimer = 2f;
         }
@@ -159,7 +159,7 @@ public class HUDManager : MonoBehaviour
     {
         if (_waveAnnounce != null && remaining > 0f)
         {
-            _waveAnnounce.text = $"Next wave in {remaining:F0}s";
+            _waveAnnounce.text = $"\u4e0b\u4e00\u6ce2: {remaining:F0} \u79d2";
             _waveAnnounce.gameObject.SetActive(true);
             _announceTimer = 1f;
         }
@@ -169,7 +169,7 @@ public class HUDManager : MonoBehaviour
     {
         if (_waveAnnounce != null)
         {
-            _waveAnnounce.text = "GAME OVER";
+            _waveAnnounce.text = "\u6e38\u620f\u7ed3\u675f";
             _waveAnnounce.color = Color.red;
             _waveAnnounce.fontSize = 48;
             _waveAnnounce.gameObject.SetActive(true);

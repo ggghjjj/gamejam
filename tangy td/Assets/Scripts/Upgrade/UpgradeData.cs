@@ -3,7 +3,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewUpgrade", menuName = "TangyTD/UpgradeData")]
 public class UpgradeData : ScriptableObject
 {
-    public string upgradeName = "New Upgrade";
+    public string upgradeName = "\u65b0\u5347\u7ea7";
     [TextArea] public string description = "";
     public Color cardColor = Color.white;
     public UpgradeEffect effect;
