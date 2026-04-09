@@ -23,9 +23,9 @@ public class HeroController : MonoBehaviour
         _rb.gravityScale = 0f;
         _rb.freezeRotation = true;
 
-        // Generate blue square sprite
+        // Generate cyan hero sprite
         var sr = GetComponent<SpriteRenderer>();
-        sr.sprite = SpriteFactory.CreateSquare(new Color(0.2f, 0.4f, 0.9f));
+        sr.sprite = SpriteFactory.CreateSquare(new Color(0f, 0.9f, 0.9f));
         sr.sortingOrder = 10;
 
         currentHP = maxHP;
@@ -37,6 +37,17 @@ public class HeroController : MonoBehaviour
     {
         _moveInput.x = Input.GetAxisRaw("Horizontal");
         _moveInput.y = Input.GetAxisRaw("Vertical");
+
+        // Bobbing animation when moving
+        if (_moveInput.sqrMagnitude > 0.01f)
+        {
+            float bob = Mathf.Sin(Time.time * 8f) * 0.05f;
+            transform.localScale = new Vector3(0.5f - bob * 0.3f, 0.5f + bob, 1f);
+        }
+        else
+        {
+            transform.localScale = Vector3.one * 0.5f;
+        }
     }
 
     private void FixedUpdate()

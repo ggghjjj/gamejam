@@ -61,6 +61,40 @@ public static class VFXFactory
 
         return orb;
     }
+
+    /// <summary>
+    /// 伤害跳字 — 命中时在敌人头上弹出数字
+    /// </summary>
+    public static void SpawnDamagePopup(Vector3 position, float damage, bool isCrit = false)
+    {
+        GameObject popup = new GameObject("DmgPopup");
+        popup.transform.position = position + Vector3.up * 0.3f;
+
+        // Use a Canvas in world space for text
+        var canvas = popup.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+        canvas.sortingOrder = 30;
+        var rt = popup.GetComponent<RectTransform>();
+        rt.sizeDelta = new Vector2(2f, 1f);
+        rt.localScale = Vector3.one * 0.02f;
+
+        GameObject textGO = new GameObject("Text");
+        textGO.transform.SetParent(popup.transform, false);
+        var text = textGO.AddComponent<UnityEngine.UI.Text>();
+        text.text = Mathf.RoundToInt(damage).ToString();
+        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        text.fontSize = isCrit ? 48 : 32;
+        text.color = isCrit ? new Color(1f, 0.2f, 0.1f) : Color.white;
+        text.fontStyle = isCrit ? FontStyle.Bold : FontStyle.Normal;
+        text.alignment = TextAnchor.MiddleCenter;
+        var textRT = textGO.GetComponent<RectTransform>();
+        textRT.sizeDelta = new Vector2(200, 100);
+
+        var mover = popup.AddComponent<ParticleMove>();
+        mover.velocity = new Vector2(Random.Range(-0.5f, 0.5f), 2f);
+        mover.lifetime = 0.6f;
+        mover.fadeOut = false;
+    }
 }
 
 /// <summary>

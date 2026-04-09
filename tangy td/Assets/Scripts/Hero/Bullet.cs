@@ -10,12 +10,14 @@ public class Bullet : MonoBehaviour
     private float _damage;
     private float _lifetime;
     private bool _pierce;
+    private bool _isCrit;
 
-    public void Init(Vector2 direction, float damage, bool pierce = false)
+    public void Init(Vector2 direction, float damage, bool pierce = false, bool isCrit = false)
     {
         _direction = direction;
         _damage = damage;
         _pierce = pierce;
+        _isCrit = isCrit;
 
         var col = gameObject.AddComponent<CircleCollider2D>();
         col.radius = 0.15f;
@@ -42,6 +44,7 @@ public class Bullet : MonoBehaviour
         {
             enemy.TakeDamage(_damage);
             VFXFactory.SpawnHitFlash(transform.position);
+            VFXFactory.SpawnDamagePopup(other.transform.position, _damage, _isCrit);
             if (!_pierce)
             {
                 Destroy(gameObject);

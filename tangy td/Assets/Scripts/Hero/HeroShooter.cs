@@ -72,14 +72,16 @@ public class HeroShooter : MonoBehaviour
         float damage = _hero.attackDamage;
 
         // Crit check
+        bool isCrit = false;
         if (crit > 0f && Random.value < crit)
         {
             damage *= 2f;
+            isCrit = true;
             sr.sprite = SpriteFactory.CreateCircle(Color.red, 16); // red = crit
         }
 
         var bullet = bulletGO.AddComponent<Bullet>();
-        bullet.Init(direction, damage, pierce);
+        bullet.Init(direction, damage, pierce, isCrit);
     }
 
     private Vector2 Rotate(Vector2 v, float degrees)

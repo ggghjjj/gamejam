@@ -18,7 +18,7 @@ public class WaypointPath : MonoBehaviour
     {
         if (waypoints == null || waypoints.Length < 2) return;
 
-        Gizmos.color = Color.cyan;
+        Gizmos.color = new Color(0.8f, 0.65f, 0.3f); // earthy yellow
         for (int i = 0; i < waypoints.Length; i++)
         {
             if (waypoints[i] == null) continue;

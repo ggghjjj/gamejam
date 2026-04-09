@@ -17,6 +17,9 @@ public class EnemyBase : MonoBehaviour
     private int _currentWaypointIndex;
     private SpriteRenderer _sr;
     private Color _color;
+    private float _baseScale;
+    private float _hitScaleTimer;
+    private float _bobOffset; // random offset so enemies don't bob in sync
 
     public void Init(WaypointPath path, float hp, float speed, int exp, Color color, float scale = 1f)
     {
@@ -26,6 +29,8 @@ public class EnemyBase : MonoBehaviour
         moveSpeed = speed;
         expValue = exp;
         _currentWaypointIndex = 0;
+        _baseScale = scale;
+        _bobOffset = Random.Range(0f, Mathf.PI * 2f);
 
         _sr = GetComponent<SpriteRenderer>();
         _sr.sprite = SpriteFactory.CreateCircle(color);
@@ -48,13 +53,14 @@ public class EnemyBase : MonoBehaviour
             return;
 
         MoveAlongPath();
+        ApplyBob();
+        ApplyHitScale();
     }
 
     private void MoveAlongPath()
     {
         if (_currentWaypointIndex >= _path.Length)
         {
-            // Reached end - damage player and destroy
             GameManager.Instance?.OnEnemyReachedEnd(1);
             Die(grantExp: false);
             return;
@@ -69,13 +75,33 @@ public class EnemyBase : MonoBehaviour
         }
     }
 
+    private void ApplyBob()
+    {
+        // Gentle vertical bobbing while moving
+        float bob = Mathf.Sin((Time.time + _bobOffset) * 5f) * 0.04f;
+        float scaleY = _baseScale + bob;
+        float scaleX = _baseScale - bob * 0.5f; // slight squash-stretch
+        transform.localScale = new Vector3(scaleX, scaleY, 1f);
+    }
+
+    private void ApplyHitScale()
+    {
+        if (_hitScaleTimer > 0f)
+        {
+            _hitScaleTimer -= Time.deltaTime;
+            float t = _hitScaleTimer / 0.1f; // 0.1s duration
+            float bump = 1f + t * 0.3f; // scale up to 1.3x then back
+            transform.localScale *= bump;
+        }
+    }
+
     public void TakeDamage(float damage)
     {
         if (IsDead) return;
 
         currentHP -= damage;
+        _hitScaleTimer = 0.1f;
 
-        // Flash effect
         if (_sr != null)
         {
             StartCoroutine(FlashWhite());
@@ -101,13 +127,11 @@ public class EnemyBase : MonoBehaviour
         if (IsDead) return;
         IsDead = true;
 
-        // Death particles
         VFXFactory.SpawnDeathParticles(transform.position, _color);
 
         if (grantExp)
         {
             if (GameManager.Instance != null) GameManager.Instance.totalKills++;
-            // Drop exp orb instead of directly adding exp
             VFXFactory.SpawnExpOrb(transform.position, expValue);
         }
 

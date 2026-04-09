@@ -12,8 +12,14 @@ public class GameSetup : MonoBehaviour
             gmGO.AddComponent<GameManager>();
         }
 
-        // 2. Waypoint Paths - auto-fit to camera bounds
+        // 2. Camera background - dark green
         Camera cam = Camera.main;
+        if (cam != null)
+        {
+            cam.backgroundColor = new Color(0.08f, 0.15f, 0.1f);
+        }
+
+        // 3. Waypoint Paths - auto-fit to camera bounds
         float halfH = cam != null ? cam.orthographicSize : 5f;
         float halfW = cam != null ? halfH * cam.aspect : 8f;
         float margin = 1f;
@@ -56,6 +62,16 @@ public class GameSetup : MonoBehaviour
         heroCol.size = new Vector2(0.8f, 0.8f);
         heroGO.transform.position = new Vector3(0f, yB + 0.5f, 0f);
         heroGO.transform.localScale = Vector3.one * 0.5f;
+
+        // Range indicator circle (child of hero)
+        GameObject rangeIndicator = new GameObject("RangeIndicator");
+        rangeIndicator.transform.SetParent(heroGO.transform, false);
+        rangeIndicator.transform.localPosition = Vector3.zero;
+        var rangeSR = rangeIndicator.AddComponent<SpriteRenderer>();
+        rangeSR.sprite = SpriteFactory.CreateCircle(new Color(0f, 0.9f, 0.9f, 0.08f), 64);
+        rangeSR.sortingOrder = 1;
+        // Scale to match attack range (hero scale is 0.5, so range circle needs to compensate)
+        var rangeVis = rangeIndicator.AddComponent<RangeIndicator>();
 
         // 4. Enemy Spawner (supports multiple paths)
         GameObject spawnerGO = new GameObject("EnemySpawner");
