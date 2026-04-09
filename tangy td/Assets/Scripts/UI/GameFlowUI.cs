@@ -7,6 +7,7 @@ public class GameFlowUI : MonoBehaviour
     private GameObject _levelSelectPanel;
     private GameObject _gameOverPanel;
     private Text _gameOverStats;
+    private TalentTreeUI _talentUI;
 
     // Level definitions
     private static readonly string[] LevelNames = new string[]
@@ -27,6 +28,49 @@ public class GameFlowUI : MonoBehaviour
         {
             GameManager.Instance.OnGameOver += ShowGameOver;
         }
+
+        // Skip menu if coming from "next level"
+        if (GameManager.SkipMenuOnLoad)
+        {
+            GameManager.SkipMenuOnLoad = false;
+            _mainMenuPanel.SetActive(false);
+            _levelSelectPanel.SetActive(false);
+            StartCoroutine(ShowLevelIntro());
+        }
+    }
+
+    private System.Collections.IEnumerator ShowLevelIntro()
+    {
+        Canvas canvas = GetComponentInParent<Canvas>();
+        if (canvas == null) yield break;
+
+        GameObject introPanel = CreateFullPanel(canvas.transform, "IntroPanel", new Color(0, 0, 0, 0.85f));
+
+        int lvl = GameSetup.CurrentLevel;
+        string name = lvl < LevelNames.Length ? LevelNames[lvl] : $"\u7b2c{lvl + 1}\u5173";
+
+        Text levelText = CreateLabel(introPanel.transform, "LvName",
+            $"\u7b2c{lvl + 1}\u5173  {name}",
+            new Vector2(0.1f, 0.5f), new Vector2(0.9f, 0.7f),
+            42, new Color(1f, 0.85f, 0.3f), FontStyle.Bold);
+
+        Text countdownText = CreateLabel(introPanel.transform, "Countdown", "",
+            new Vector2(0.3f, 0.3f), new Vector2(0.7f, 0.5f),
+            64, Color.white, FontStyle.Bold);
+
+        yield return new WaitForSecondsRealtime(1f);
+
+        for (int i = 3; i >= 1; i--)
+        {
+            countdownText.text = i.ToString();
+            yield return new WaitForSecondsRealtime(0.8f);
+        }
+
+        countdownText.text = "\u5f00\u59cb!";
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        Destroy(introPanel);
+        GameManager.Instance?.StartGame();
     }
 
     private void OnDestroy()
@@ -63,7 +107,11 @@ public class GameFlowUI : MonoBehaviour
         CreateButton(_mainMenuPanel.transform, "BtnTalent", "\u5929\u8d4b\u6811",
             new Vector2(0.25f, 0.18f), new Vector2(0.75f, 0.28f),
             new Color(0.5f, 0.3f, 0.7f), 26,
-            () => { Debug.Log("\u5929\u8d4b\u6811\u5f85\u5b9e\u73b0"); });
+            () => {
+                Canvas canvas = GetComponentInParent<Canvas>();
+                if (_talentUI == null) _talentUI = new TalentTreeUI();
+                _talentUI.Show(canvas.transform);
+            });
 
         _mainMenuPanel.SetActive(true);
     }
@@ -162,9 +210,16 @@ public class GameFlowUI : MonoBehaviour
             Image nodeImg = nodeGO.AddComponent<Image>();
 
             Color nodeColor;
+            bool cleared = PlayerSave.IsLevelCleared(i);
+            bool unlocked = i == 0 || i <= PlayerSave.MaxUnlockedLevel;
+
             if (i < 5) nodeColor = new Color(0.15f, 0.55f, 0.2f, 0.95f);
             else if (i < 10) nodeColor = new Color(0.65f, 0.45f, 0.1f, 0.95f);
             else nodeColor = new Color(0.65f, 0.15f, 0.15f, 0.95f);
+
+            if (!unlocked) nodeColor = new Color(0.2f, 0.2f, 0.2f, 0.6f); // locked = gray
+            else if (cleared) nodeColor = Color.Lerp(nodeColor, Color.white, 0.3f); // cleared = brighter
+
             nodeImg.color = nodeColor;
 
             // Make it circular using a circle sprite as source
@@ -214,6 +269,7 @@ public class GameFlowUI : MonoBehaviour
             var jelly = nodeGO.AddComponent<JellyHover>();
             jelly.baseSize = 70f;
 
+            nodeBtn.interactable = unlocked;
             nodeBtn.onClick.AddListener(() =>
             {
                 GameSetup.CurrentLevel = levelIdx;

@@ -9,6 +9,8 @@ public class EnemyBase : MonoBehaviour
     public float moveSpeed = 2f;
     public int expValue = 10;
     public int goldValue = 2;
+    public float contactDamage = 5f;
+    private float _contactTimer;
 
     [Header("Runtime")]
     public float currentHP;
@@ -46,6 +48,13 @@ public class EnemyBase : MonoBehaviour
 
         var col = GetComponent<CircleCollider2D>();
         col.radius = 0.4f;
+        col.isTrigger = true;
+
+        // Rigidbody for trigger detection
+        var rb = gameObject.GetComponent<Rigidbody2D>();
+        if (rb == null) rb = gameObject.AddComponent<Rigidbody2D>();
+        rb.gravityScale = 0f;
+        rb.isKinematic = true;
 
         gameObject.tag = "Enemy";
 
@@ -165,6 +174,28 @@ public class EnemyBase : MonoBehaviour
         _sr.color = Color.white;
         yield return new WaitForSeconds(0.05f);
         if (_sr != null) _sr.color = original;
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (IsDead) return;
+        _contactTimer -= Time.deltaTime;
+        if (_contactTimer > 0f) return;
+        _contactTimer = 0.5f; // damage every 0.5s
+
+        var hero = other.GetComponent<HeroController>();
+        if (hero != null)
+        {
+            hero.TakeDamage(contactDamage);
+            return;
+        }
+
+        var tower = other.GetComponent<TowerBase>();
+        if (tower != null)
+        {
+            tower.currentHP -= contactDamage;
+            if (tower.currentHP <= 0f) Destroy(tower.gameObject);
+        }
     }
 
     private void Die(bool grantExp)

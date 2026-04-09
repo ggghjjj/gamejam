@@ -53,9 +53,20 @@ public class VictoryUI : MonoBehaviour
             new Vector2(0.1f, 0.82f), new Vector2(0.9f, 0.95f),
             48, new Color(1f, 0.85f, 0.2f), FontStyle.Bold);
 
-        // Stats
+        // Save progress and award diamonds
+        int lvl = GameSetup.CurrentLevel;
+        int diamondReward = 3 + lvl;
+        PlayerSave.SetLevelStars(lvl, 3);
+        PlayerSave.Diamonds += diamondReward;
+        if (lvl >= PlayerSave.MaxUnlockedLevel) PlayerSave.MaxUnlockedLevel = lvl + 1;
+
+        // Stats + reward
         var gm = GameManager.Instance;
-        string stats = $"\u6ce2\u6b21: {gm.currentWave}  |  \u51fb\u6740: {gm.totalKills}  |  \u7b49\u7ea7: {gm.level}";
+        string stats = "";
+        if (gm != null)
+        {
+            stats = $"\u6ce2\u6b21: {gm.currentWave}  |  \u51fb\u6740: {gm.totalKills}  |  \u7b49\u7ea7: {gm.level}\n\u83b7\u5f97\u94bb\u77f3: +{diamondReward}";
+        }
         CreateLabel(_panel.transform, stats,
             new Vector2(0.1f, 0.74f), new Vector2(0.9f, 0.82f),
             22, Color.white, FontStyle.Normal);
@@ -129,7 +140,7 @@ public class VictoryUI : MonoBehaviour
             new Vector2(0.55f, 0.05f), new Vector2(0.85f, 0.15f),
             new Color(0.2f, 0.7f, 0.3f), () => {
                 GameSetup.CurrentLevel++;
-                GameManager.Instance?.RestartGame();
+                GameManager.Instance?.NextLevel();
             });
 
         _panel.SetActive(true);

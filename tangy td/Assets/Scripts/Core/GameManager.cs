@@ -92,8 +92,19 @@ public class GameManager : MonoBehaviour
         OnGameStart?.Invoke();
     }
 
+    public static bool SkipMenuOnLoad = false; // set true when going to next level
+
     public void RestartGame()
     {
+        SkipMenuOnLoad = false;
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void NextLevel()
+    {
+        SkipMenuOnLoad = true;
         Time.timeScale = 1f;
         UnityEngine.SceneManagement.SceneManager.LoadScene(
             UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);

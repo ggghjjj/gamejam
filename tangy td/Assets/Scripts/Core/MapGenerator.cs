@@ -49,36 +49,38 @@ public class MapGenerator : MonoBehaviour
             cam.backgroundColor = bgColors[levelIndex % bgColors.Length];
         }
 
-        // Generate 1-2 paths depending on level
-        int pathCount = levelIndex < 3 ? 1 : 2;
+        // Generate paths: more paths for higher levels (1→2→3 paths = more forks)
+        int pathCount = Mathf.Min(1 + levelIndex / 3, 4); // 1,1,1,2,2,2,3,3,3,4...
+
+        // Shared endpoint (base/destination) at bottom center
+        Vector3 sharedEnd = new Vector3(0f, yB, 0f);
 
         for (int p = 0; p < pathCount; p++)
         {
-            Vector3[] waypoints = GenerateRandomPath(xL, xR, yT, yB, p, pathCount);
+            Vector3[] waypoints = GenerateRandomPath(xL, xR, yT, yB, p, pathCount, sharedEnd);
             WaypointPath path = CreatePath($"Path_{p}", waypoints);
             _paths.Add(path);
 
-            // Spawner per path
             GameObject spawnerGO = new GameObject($"Spawner_{p}");
             EnemySpawner spawner = spawnerGO.AddComponent<EnemySpawner>();
             spawner.path = path;
             _spawners.Add(spawner);
 
-            // Visualize path
             VisualizePath(path, GetPathColor(p));
-
-            // Markers
             SpawnPathMarkers(path, p);
         }
 
-        // Trees (avoid path areas)
-        SpawnTrees(xL, xR, yT, yB, 10 + levelIndex * 2);
+        // Base marker at shared endpoint (only once)
+        SpawnBaseMarker(sharedEnd);
+
+        // Trees (avoid paths, bigger)
+        SpawnTrees(xL, xR, yT, yB, 8 + levelIndex * 2);
 
         // Reset random state
         Random.InitState(System.Environment.TickCount);
     }
 
-    private Vector3[] GenerateRandomPath(float xL, float xR, float yT, float yB, int pathIndex, int totalPaths)
+    private Vector3[] GenerateRandomPath(float xL, float xR, float yT, float yB, int pathIndex, int totalPaths, Vector3 sharedEnd)
     {
         List<Vector3> points = new List<Vector3>();
 
@@ -107,8 +109,8 @@ public class MapGenerator : MonoBehaviour
 
         points.Add(new Vector3(startX, yT, 0f));
 
-        // Generate 3-5 intermediate zigzag points
-        int segments = Random.Range(3, 6);
+        // Generate 4-8 intermediate zigzag points (more complex paths)
+        int segments = Random.Range(4, 9);
         float yStep = (yT - yB) / (segments + 1);
 
         for (int i = 0; i < segments; i++)
@@ -127,7 +129,7 @@ public class MapGenerator : MonoBehaviour
             points.Add(new Vector3(x, y, 0f));
         }
 
-        points.Add(new Vector3(endX, yB, 0f));
+        points.Add(sharedEnd); // all paths converge to same base
         return points.ToArray();
     }
 
@@ -197,41 +199,36 @@ public class MapGenerator : MonoBehaviour
     {
         if (path == null || path.Length < 2) return;
 
-        // Spawn nest (top)
+        // Nest only (base is shared, drawn separately)
         Vector3 spawnPos = path.GetPosition(0);
         GameObject nest = new GameObject($"Nest_{pathIndex}");
         nest.transform.position = spawnPos;
-
-        // Outer ring
-        var nestSR = nest.AddComponent<SpriteRenderer>();
         nest.transform.localScale = Vector3.one * 0.4f;
+        var nestSR = nest.AddComponent<SpriteRenderer>();
         nestSR.sprite = SpriteFactory.CreateCircle(new Color(0.7f, 0.1f, 0.1f, 0.8f), 32);
         nestSR.sortingOrder = 2;
-        // Skull-like inner dots
         var inner = new GameObject("Core");
         inner.transform.SetParent(nest.transform, false);
         inner.transform.localScale = Vector3.one * 0.4f;
-        var innerSR = inner.AddComponent<SpriteRenderer>();
-        innerSR.sprite = SpriteFactory.CreateCircle(new Color(0.2f, 0f, 0f), 16);
-        innerSR.sortingOrder = 3;
+        inner.AddComponent<SpriteRenderer>().sprite = SpriteFactory.CreateCircle(new Color(0.2f, 0f, 0f), 16);
+        inner.GetComponent<SpriteRenderer>().sortingOrder = 3;
+    }
 
-        // Base (bottom)
-        Vector3 endPos = path.GetPosition(path.Length - 1);
-        GameObject baseGO = new GameObject($"Base_{pathIndex}");
-        baseGO.transform.position = endPos;
-        baseGO.transform.localScale = Vector3.one * 0.35f;
+    private void SpawnBaseMarker(Vector3 pos)
+    {
+        GameObject baseGO = new GameObject("Base");
+        baseGO.transform.position = pos;
+        baseGO.transform.localScale = Vector3.one * 0.45f;
         baseGO.transform.rotation = Quaternion.Euler(0, 0, 45);
         var baseSR = baseGO.AddComponent<SpriteRenderer>();
-        baseSR.sprite = SpriteFactory.CreateSquare(new Color(0.2f, 0.5f, 1f, 0.8f), 16);
+        baseSR.sprite = SpriteFactory.CreateSquare(new Color(0.2f, 0.5f, 1f, 0.9f), 16);
         baseSR.sortingOrder = 2;
-        // Heart icon (inner circle)
         var heart = new GameObject("Heart");
         heart.transform.SetParent(baseGO.transform, false);
         heart.transform.localScale = Vector3.one * 0.5f;
-        heart.transform.localRotation = Quaternion.Euler(0, 0, -45); // counter-rotate
-        var heartSR = heart.AddComponent<SpriteRenderer>();
-        heartSR.sprite = SpriteFactory.CreateCircle(new Color(1f, 0.3f, 0.3f), 16);
-        heartSR.sortingOrder = 3;
+        heart.transform.localRotation = Quaternion.Euler(0, 0, -45);
+        heart.AddComponent<SpriteRenderer>().sprite = SpriteFactory.CreateCircle(new Color(1f, 0.3f, 0.3f), 16);
+        heart.GetComponent<SpriteRenderer>().sortingOrder = 3;
     }
 
     private void SpawnTrees(float xL, float xR, float yT, float yB, int count)
@@ -260,14 +257,14 @@ public class MapGenerator : MonoBehaviour
             // Trunk
             var trunk = new GameObject("Trunk");
             trunk.transform.SetParent(tree.transform, false);
-            trunk.transform.localScale = new Vector3(0.06f, 0.12f, 1f);
+            trunk.transform.localScale = new Vector3(0.1f, 0.18f, 1f);
             trunk.transform.localPosition = new Vector3(0f, -0.04f, 0f);
             var trunkSR = trunk.AddComponent<SpriteRenderer>();
             trunkSR.sprite = SpriteFactory.CreateSquare(new Color(0.35f, 0.2f, 0.1f), 8);
             trunkSR.sortingOrder = 3;
 
             // Crown layers
-            float crownSize = Random.Range(0.15f, 0.25f);
+            float crownSize = Random.Range(0.25f, 0.4f); // 1.5x bigger trees
             for (int c = 0; c < 3; c++)
             {
                 var crown = new GameObject($"Crown_{c}");

@@ -33,6 +33,9 @@ public class GameSetup : MonoBehaviour
         heroGO.transform.position = new Vector3(0f, yB + 0.5f, 0f);
         heroGO.transform.localScale = Vector3.one * 0.3f;
 
+        // Apply talent bonuses
+        TalentTreeUI.ApplyTalentsToHero(heroGO.GetComponent<HeroController>());
+
         // Range indicator
         GameObject rangeIndicator = new GameObject("RangeIndicator");
         rangeIndicator.transform.SetParent(heroGO.transform, false);
