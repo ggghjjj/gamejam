@@ -6,7 +6,7 @@ public class WaveManager : MonoBehaviour
     public static WaveManager Instance { get; private set; }
 
     [Header("References")]
-    public EnemySpawner spawner;
+    public EnemySpawner[] spawners; // one per path
 
     [Header("Continuous Spawn Settings")]
     public float baseSpawnInterval = 0.5f;     // seconds between spawns
@@ -90,9 +90,10 @@ public class WaveManager : MonoBehaviour
             float speedMult = Mathf.Pow(speedScalePerMinute, minutes);
             float interval = Mathf.Max(minSpawnInterval, baseSpawnInterval - minutes * intervalDecayPerMinute);
 
-            // Spawn an enemy
+            // Spawn an enemy on a random path's spawner
             EnemyType type = PickEnemyType();
-            spawner.SpawnEnemy(type, currentWave, hpMult, speedMult);
+            EnemySpawner chosenSpawner = spawners[totalSpawned % spawners.Length];
+            chosenSpawner.SpawnEnemy(type, currentWave, hpMult, speedMult);
             _enemiesAlive++;
             totalSpawned++;
 
@@ -101,13 +102,14 @@ public class WaveManager : MonoBehaviour
                 GameManager.Instance.totalKills % bossEveryNKills == 0)
             {
                 yield return new WaitForSeconds(0.3f);
+                EnemySpawner bossSpawner = spawners[0];
                 for (int i = 0; i < 2; i++)
                 {
-                    spawner.SpawnEnemy(EnemyType.Tank, currentWave, hpMult, speedMult);
+                    bossSpawner.SpawnEnemy(EnemyType.Tank, currentWave, hpMult, speedMult);
                     _enemiesAlive++;
                     yield return new WaitForSeconds(0.2f);
                 }
-                spawner.SpawnEnemy(EnemyType.Boss, currentWave, hpMult, speedMult);
+                bossSpawner.SpawnEnemy(EnemyType.Boss, currentWave, hpMult, speedMult);
                 _enemiesAlive++;
                 ScreenShake.Shake(0.25f, 0.4f);
                 SFXManager.PlayBoss();

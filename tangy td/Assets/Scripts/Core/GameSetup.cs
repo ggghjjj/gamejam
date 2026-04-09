@@ -3,6 +3,8 @@ using UnityEngine.UI;
 
 public class GameSetup : MonoBehaviour
 {
+    public static int CurrentLevel = 0; // set by level select before scene load
+
     private void Awake()
     {
         // 1. GameManager
@@ -12,46 +14,14 @@ public class GameSetup : MonoBehaviour
             gmGO.AddComponent<GameManager>();
         }
 
-        // 2. Camera background - dark green
+        // 2. Map Generator - creates paths, trees, markers based on level
+        GameObject mapGenGO = new GameObject("MapGenerator");
+        MapGenerator mapGen = mapGenGO.AddComponent<MapGenerator>();
+        mapGen.GenerateMap(CurrentLevel);
+
         Camera cam = Camera.main;
-        if (cam != null)
-        {
-            cam.backgroundColor = new Color(0.08f, 0.15f, 0.1f);
-        }
-
-        // 3. Waypoint Paths - auto-fit to camera bounds
         float halfH = cam != null ? cam.orthographicSize : 5f;
-        float halfW = cam != null ? halfH * cam.aspect : 8f;
-        float margin = 1f;
-        float xL = -halfW + margin;
-        float xR = halfW - margin;
-        float yT = halfH - margin;
-        float yB = -halfH + margin;
-
-        // Path A: Z-shaped (left-to-right start)
-        WaypointPath pathA = CreatePath("EnemyPath_A", new Vector3[]
-        {
-            new Vector3(xL, yT, 0f),
-            new Vector3(xR, yT, 0f),
-            new Vector3(xR, yT * 0.33f, 0f),
-            new Vector3(xL, yT * 0.33f, 0f),
-            new Vector3(xL, -yT * 0.33f, 0f),
-            new Vector3(xR, -yT * 0.33f, 0f),
-            new Vector3(xR, yB, 0f),
-            new Vector3(xL, yB, 0f),
-        });
-
-        // Path B: S-shaped (right-to-left start)
-        WaypointPath pathB = CreatePath("EnemyPath_B", new Vector3[]
-        {
-            new Vector3(xR, yT, 0f),
-            new Vector3(xL, yT, 0f),
-            new Vector3(xL, yT * 0.2f, 0f),
-            new Vector3(0f, 0f, 0f),
-            new Vector3(xR, -yT * 0.2f, 0f),
-            new Vector3(xR, yB, 0f),
-            new Vector3(xL, yB, 0f),
-        });
+        float yB = -halfH + 1f;
 
         // 3. Hero
         GameObject heroGO = new GameObject("Hero");
@@ -63,42 +33,28 @@ public class GameSetup : MonoBehaviour
         heroGO.transform.position = new Vector3(0f, yB + 0.5f, 0f);
         heroGO.transform.localScale = Vector3.one * 0.3f;
 
-        // Range indicator circle (child of hero)
+        // Range indicator
         GameObject rangeIndicator = new GameObject("RangeIndicator");
         rangeIndicator.transform.SetParent(heroGO.transform, false);
-        rangeIndicator.transform.localPosition = Vector3.zero;
         var rangeSR = rangeIndicator.AddComponent<SpriteRenderer>();
         rangeSR.sprite = SpriteFactory.CreateCircle(new Color(0f, 0.9f, 0.9f, 0.08f), 64);
         rangeSR.sortingOrder = 1;
-        // Scale to match attack range (hero scale is 0.5, so range circle needs to compensate)
-        var rangeVis = rangeIndicator.AddComponent<RangeIndicator>();
+        rangeIndicator.AddComponent<RangeIndicator>();
 
-        // 4. Enemy Spawner (supports multiple paths)
-        GameObject spawnerGO = new GameObject("EnemySpawner");
-        EnemySpawner spawner = spawnerGO.AddComponent<EnemySpawner>();
-        spawner.path = pathA; // default path
-        spawner.paths = new WaypointPath[] { pathA, pathB };
-
-        // 5. Wave Manager
+        // 4. Wave Manager - uses spawners from MapGenerator
         GameObject waveGO = new GameObject("WaveManager");
         WaveManager waveManager = waveGO.AddComponent<WaveManager>();
-        waveManager.spawner = spawner;
+        waveManager.spawners = mapGen.Spawners.ToArray();
 
-        // 6. Upgrade Manager
+        // 5. Upgrade Manager
         GameObject upgradeGO = new GameObject("UpgradeManager");
         upgradeGO.AddComponent<UpgradeManager>();
 
-        // 6.5 Object Pool
-        GameObject poolGO = new GameObject("ObjectPool");
-        poolGO.AddComponent<ObjectPool>();
-
-        // 6.6 Placement System
+        // 6. Object Pool + Placement + SFX
+        new GameObject("ObjectPool").AddComponent<ObjectPool>();
         GameObject placementGO = new GameObject("PlacementSystem");
         PlacementSystem placement = placementGO.AddComponent<PlacementSystem>();
-
-        // 6.7 SFX Manager
-        GameObject sfxGO = new GameObject("SFXManager");
-        sfxGO.AddComponent<SFXManager>();
+        new GameObject("SFXManager").AddComponent<SFXManager>();
 
         // 7. UI Canvas
         GameObject canvasGO = new GameObject("Canvas");
@@ -108,183 +64,28 @@ public class GameSetup : MonoBehaviour
         canvasGO.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         var scaler = canvasGO.GetComponent<CanvasScaler>();
         scaler.referenceResolution = new Vector2(1920, 1080);
-        scaler.matchWidthOrHeight = 0.5f; // blend between width and height matching
+        scaler.matchWidthOrHeight = 0.5f;
         canvasGO.AddComponent<GraphicRaycaster>();
 
-        // EventSystem (required for UI clicks)
         if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
         {
-            GameObject eventSystem = new GameObject("EventSystem");
-            eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
-            eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+            GameObject es = new GameObject("EventSystem");
+            es.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            es.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
         }
 
-        // HUD
-        GameObject hudGO = new GameObject("HUD");
-        hudGO.transform.SetParent(canvasGO.transform, false);
-        hudGO.AddComponent<HUDManager>();
-
-        // Upgrade UI
-        GameObject upgradeUIGO = new GameObject("UpgradeUI");
-        upgradeUIGO.transform.SetParent(canvasGO.transform, false);
-        upgradeUIGO.AddComponent<UpgradeUI>();
-
-        // Game Flow UI (start screen + game over screen)
-        GameObject flowUIGO = new GameObject("GameFlowUI");
-        flowUIGO.transform.SetParent(canvasGO.transform, false);
-        flowUIGO.AddComponent<GameFlowUI>();
-
-        // Tower Placement UI
+        // UI components
+        var hudGO = new GameObject("HUD"); hudGO.transform.SetParent(canvasGO.transform, false); hudGO.AddComponent<HUDManager>();
+        var upgradeUIGO = new GameObject("UpgradeUI"); upgradeUIGO.transform.SetParent(canvasGO.transform, false); upgradeUIGO.AddComponent<UpgradeUI>();
+        var flowUIGO = new GameObject("GameFlowUI"); flowUIGO.transform.SetParent(canvasGO.transform, false); flowUIGO.AddComponent<GameFlowUI>();
         placement.BuildPlacementUI(canvasGO.transform);
+        var victoryUIGO = new GameObject("VictoryUI"); victoryUIGO.transform.SetParent(canvasGO.transform, false); victoryUIGO.AddComponent<VictoryUI>();
 
-        // Victory UI
-        GameObject victoryUIGO = new GameObject("VictoryUI");
-        victoryUIGO.transform.SetParent(canvasGO.transform, false);
-        victoryUIGO.AddComponent<VictoryUI>();
-
-        // 8. Camera follow + screen shake
+        // 8. Camera follow + shake
         if (cam != null)
         {
-            var camFollow = cam.gameObject.AddComponent<CameraFollow>();
-            camFollow.target = heroGO.transform;
+            cam.gameObject.AddComponent<CameraFollow>().target = heroGO.transform;
             cam.gameObject.AddComponent<ScreenShake>();
         }
-
-        // 9. Environment decorations
-        SpawnEnvironment(xL, xR, yT, yB);
-
-        // 10. Path visualization (wide road)
-        VisualizePath(pathA, new Color(0.45f, 0.35f, 0.18f, 0.25f));
-        VisualizePath(pathB, new Color(0.4f, 0.32f, 0.2f, 0.2f));
-
-        // 11. Spawn/End point markers
-        SpawnPathMarkers(pathA);
-        SpawnPathMarkers(pathB);
-
-        Debug.Log("=== Tangy TD \u573a\u666f\u642d\u5efa\u5b8c\u6210 ===");
-        Debug.Log("WASD \u79fb\u52a8\u82f1\u96c4\uff0c\u81ea\u52a8\u5c04\u51fb\u8303\u56f4\u5185\u654c\u4eba");
-        Debug.Log("\u5347\u7ea7\u540e\u53ef\u9009\u62e9\u5f3a\u5316!");
-    }
-
-    private void SpawnEnvironment(float xL, float xR, float yT, float yB)
-    {
-        int treeCount = 12;
-        for (int i = 0; i < treeCount; i++)
-        {
-            float x = Random.Range(xL + 0.5f, xR - 0.5f);
-            float y = Random.Range(yB + 1f, yT - 0.5f);
-
-            GameObject tree = new GameObject($"Tree_{i}");
-            tree.transform.position = new Vector3(x, y, 0f);
-
-            // Tree trunk (dark brown square)
-            var trunk = new GameObject("Trunk");
-            trunk.transform.SetParent(tree.transform, false);
-            trunk.transform.localScale = new Vector3(0.08f, 0.15f, 1f);
-            trunk.transform.localPosition = new Vector3(0f, -0.05f, 0f);
-            var trunkSR = trunk.AddComponent<SpriteRenderer>();
-            trunkSR.sprite = SpriteFactory.CreateSquare(new Color(0.3f, 0.18f, 0.08f), 8);
-            trunkSR.sortingOrder = 3;
-
-            // Tree crown (layered circles for fullness)
-            float crownSize = Random.Range(0.2f, 0.35f);
-            for (int c = 0; c < 3; c++)
-            {
-                var crown = new GameObject($"Crown_{c}");
-                crown.transform.SetParent(tree.transform, false);
-                float offset = c * 0.03f;
-                crown.transform.localPosition = new Vector3(
-                    Random.Range(-0.04f, 0.04f),
-                    0.05f + offset, 0f);
-                crown.transform.localScale = Vector3.one * (crownSize - c * 0.03f);
-                var crownSR = crown.AddComponent<SpriteRenderer>();
-                Color g = new Color(
-                    Random.Range(0.1f, 0.2f),
-                    Random.Range(0.35f, 0.55f),
-                    Random.Range(0.08f, 0.18f));
-                crownSR.sprite = SpriteFactory.CreateCircle(g, 16);
-                crownSR.sortingOrder = 4 + c;
-            }
-
-            // Collider for placement blocking
-            var col = tree.AddComponent<CircleCollider2D>();
-            col.radius = 0.2f;
-            col.isTrigger = true;
-        }
-    }
-
-    private void VisualizePath(WaypointPath path, Color color)
-    {
-        if (path == null || path.Length < 2) return;
-
-        for (int i = 0; i < path.Length - 1; i++)
-        {
-            Vector3 from = path.GetPosition(i);
-            Vector3 to = path.GetPosition(i + 1);
-            float dist = Vector3.Distance(from, to);
-            int segments = Mathf.CeilToInt(dist / 0.3f);
-
-            for (int d = 0; d < segments; d++)
-            {
-                float t = (float)d / segments;
-                Vector3 pos = Vector3.Lerp(from, to, t);
-
-                GameObject road = new GameObject("Road");
-                road.transform.position = pos;
-                // Wide road segments
-                road.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
-
-                var sr = road.AddComponent<SpriteRenderer>();
-                sr.sprite = SpriteFactory.CreateSquare(color, 8);
-                sr.sortingOrder = 0;
-            }
-        }
-    }
-
-    private void SpawnPathMarkers(WaypointPath path)
-    {
-        if (path == null || path.Length < 2) return;
-
-        // Spawn point (enemy nest) - red skull-like circle
-        Vector3 spawnPos = path.GetPosition(0);
-        GameObject nest = new GameObject("EnemyNest");
-        nest.transform.position = spawnPos;
-        nest.transform.localScale = Vector3.one * 0.4f;
-        var nestSR = nest.AddComponent<SpriteRenderer>();
-        nestSR.sprite = SpriteFactory.CreateCircle(new Color(0.8f, 0.15f, 0.15f, 0.8f), 32);
-        nestSR.sortingOrder = 2;
-        // Inner mark
-        var nestInner = new GameObject("Inner");
-        nestInner.transform.SetParent(nest.transform, false);
-        nestInner.transform.localScale = Vector3.one * 0.5f;
-        var nestInnerSR = nestInner.AddComponent<SpriteRenderer>();
-        nestInnerSR.sprite = SpriteFactory.CreateCircle(new Color(0.3f, 0.05f, 0.05f), 16);
-        nestInnerSR.sortingOrder = 3;
-
-        // End point (base) - blue diamond-like square
-        Vector3 endPos = path.GetPosition(path.Length - 1);
-        GameObject basePoint = new GameObject("Base");
-        basePoint.transform.position = endPos;
-        basePoint.transform.localScale = Vector3.one * 0.35f;
-        basePoint.transform.rotation = Quaternion.Euler(0, 0, 45);
-        var baseSR = basePoint.AddComponent<SpriteRenderer>();
-        baseSR.sprite = SpriteFactory.CreateSquare(new Color(0.2f, 0.5f, 1f, 0.8f), 16);
-        baseSR.sortingOrder = 2;
-    }
-
-    private WaypointPath CreatePath(string name, Vector3[] positions)
-    {
-        GameObject pathGO = new GameObject(name);
-        WaypointPath path = pathGO.AddComponent<WaypointPath>();
-        Transform[] waypoints = new Transform[positions.Length];
-        for (int i = 0; i < positions.Length; i++)
-        {
-            GameObject wp = new GameObject($"WP_{i}");
-            wp.transform.parent = pathGO.transform;
-            wp.transform.position = positions[i];
-            waypoints[i] = wp.transform;
-        }
-        path.waypoints = waypoints;
-        return path;
     }
 }
