@@ -9,18 +9,18 @@ public class Bullet : MonoBehaviour
     private Vector2 _direction;
     private float _damage;
     private float _lifetime;
+    private bool _pierce;
 
-    public void Init(Vector2 direction, float damage)
+    public void Init(Vector2 direction, float damage, bool pierce = false)
     {
         _direction = direction;
         _damage = damage;
+        _pierce = pierce;
 
-        // Add collider for trigger detection
         var col = gameObject.AddComponent<CircleCollider2D>();
         col.radius = 0.15f;
         col.isTrigger = true;
 
-        // Add rigidbody for trigger to work
         var rb = gameObject.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.velocity = _direction * speed;
@@ -41,7 +41,10 @@ public class Bullet : MonoBehaviour
         if (enemy != null && !enemy.IsDead)
         {
             enemy.TakeDamage(_damage);
-            Destroy(gameObject);
+            if (!_pierce)
+            {
+                Destroy(gameObject);
+            }
         }
     }
 }

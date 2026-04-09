@@ -1,10 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI;
 
-/// <summary>
-/// Attach this to an empty GameObject in the scene.
-/// On Awake it builds the entire game scene: Hero, WaypointPath, EnemySpawner, GameManager.
-/// This avoids manual scene setup - just create one GO with this script.
-/// </summary>
 public class GameSetup : MonoBehaviour
 {
     private void Awake()
@@ -22,14 +18,14 @@ public class GameSetup : MonoBehaviour
 
         Vector3[] positions = new Vector3[]
         {
-            new Vector3(-7f, 4f, 0f),    // top-left
-            new Vector3(7f, 4f, 0f),     // top-right
-            new Vector3(7f, 1.5f, 0f),   // mid-right
-            new Vector3(-7f, 1.5f, 0f),  // mid-left
-            new Vector3(-7f, -1f, 0f),   // lower-left
-            new Vector3(7f, -1f, 0f),    // lower-right
-            new Vector3(7f, -3.5f, 0f),  // bottom-right
-            new Vector3(-7f, -3.5f, 0f), // bottom-left (end)
+            new Vector3(-7f, 4f, 0f),
+            new Vector3(7f, 4f, 0f),
+            new Vector3(7f, 1.5f, 0f),
+            new Vector3(-7f, 1.5f, 0f),
+            new Vector3(-7f, -1f, 0f),
+            new Vector3(7f, -1f, 0f),
+            new Vector3(7f, -3.5f, 0f),
+            new Vector3(-7f, -3.5f, 0f),
         };
 
         Transform[] waypoints = new Transform[positions.Length];
@@ -42,16 +38,13 @@ public class GameSetup : MonoBehaviour
         }
         path.waypoints = waypoints;
 
-        // 3. Hero - starts at center-bottom area
+        // 3. Hero
         GameObject heroGO = new GameObject("Hero");
         heroGO.AddComponent<SpriteRenderer>();
         heroGO.AddComponent<HeroController>();
         heroGO.AddComponent<HeroShooter>();
-
-        // Add collider for hero (optional, for future enemy contact damage)
         var heroCol = heroGO.AddComponent<BoxCollider2D>();
         heroCol.size = new Vector2(0.8f, 0.8f);
-
         heroGO.transform.position = new Vector3(0f, -4f, 0f);
 
         // 4. Enemy Spawner
@@ -59,8 +52,44 @@ public class GameSetup : MonoBehaviour
         EnemySpawner spawner = spawnerGO.AddComponent<EnemySpawner>();
         spawner.path = path;
 
+        // 5. Wave Manager
+        GameObject waveGO = new GameObject("WaveManager");
+        WaveManager waveManager = waveGO.AddComponent<WaveManager>();
+        waveManager.spawner = spawner;
+
+        // 6. Upgrade Manager
+        GameObject upgradeGO = new GameObject("UpgradeManager");
+        upgradeGO.AddComponent<UpgradeManager>();
+
+        // 7. UI Canvas
+        GameObject canvasGO = new GameObject("Canvas");
+        Canvas canvas = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 100;
+        canvasGO.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        canvasGO.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
+        canvasGO.AddComponent<GraphicRaycaster>();
+
+        // EventSystem (required for UI clicks)
+        if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
+        {
+            GameObject eventSystem = new GameObject("EventSystem");
+            eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+        }
+
+        // HUD
+        GameObject hudGO = new GameObject("HUD");
+        hudGO.transform.SetParent(canvasGO.transform, false);
+        hudGO.AddComponent<HUDManager>();
+
+        // Upgrade UI
+        GameObject upgradeUIGO = new GameObject("UpgradeUI");
+        upgradeUIGO.transform.SetParent(canvasGO.transform, false);
+        upgradeUIGO.AddComponent<UpgradeUI>();
+
         Debug.Log("=== Tangy TD Scene Setup Complete ===");
-        Debug.Log("Hero: WASD to move. Auto-shoots nearest enemy in range.");
-        Debug.Log("Enemies spawn and follow the Z-shaped path.");
+        Debug.Log("WASD to move. Auto-shoot enemies in range.");
+        Debug.Log("Level up to get upgrade choices!");
     }
 }

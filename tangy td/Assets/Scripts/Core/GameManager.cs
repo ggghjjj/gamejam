@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     public int level = 1;
     public int expToNextLevel = 50;
     public float expScalePerLevel = 1.3f;
+    public int totalKills = 0;
 
     // Events
     public System.Action<int> OnLivesChanged;
@@ -37,7 +38,11 @@ public class GameManager : MonoBehaviour
     {
         if (state != GameState.Playing) return;
 
-        experience += amount;
+        totalKills++;
+
+        // Apply exp bonus from upgrades
+        float mult = UpgradeManager.Instance != null ? UpgradeManager.Instance.expBonusMult : 1f;
+        experience += Mathf.RoundToInt(amount * mult);
         OnExpChanged?.Invoke(experience, expToNextLevel);
 
         while (experience >= expToNextLevel)
