@@ -116,14 +116,22 @@ public class GameFlowUI : MonoBehaviour
         // Debug: add diamonds
         Text debugBtnText = null;
         CreateButton(_mainMenuPanel.transform, "BtnDebug", $"+50\u94bb\u77f3 [\u5f53\u524d:{PlayerSave.Diamonds}]",
-            new Vector2(0.2f, 0.06f), new Vector2(0.8f, 0.14f),
-            new Color(0.35f, 0.35f, 0.45f), 16,
+            new Vector2(0.55f, 0.06f), new Vector2(0.95f, 0.14f),
+            new Color(0.35f, 0.35f, 0.45f), 14,
             () => {
                 PlayerSave.AddTestDiamonds(50);
             });
-        // Get the text to update it
         var debugBtn = _mainMenuPanel.transform.Find("BtnDebug");
         if (debugBtn != null) debugBtnText = debugBtn.GetComponentInChildren<Text>();
+
+        // Reset all data
+        CreateButton(_mainMenuPanel.transform, "BtnReset", "\u91cd\u7f6e\u5168\u90e8\u6570\u636e",
+            new Vector2(0.05f, 0.06f), new Vector2(0.45f, 0.14f),
+            new Color(0.6f, 0.2f, 0.2f), 14,
+            () => {
+                PlayerSave.ClearAll();
+                GameManager.Instance?.RestartGame();
+            });
 
         _mainMenuPanel.SetActive(true);
 
