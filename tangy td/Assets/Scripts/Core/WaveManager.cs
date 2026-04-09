@@ -70,6 +70,13 @@ public class WaveManager : MonoBehaviour
             waveInProgress = false;
             OnWaveComplete?.Invoke(currentWave);
 
+            // Check victory
+            if (GameManager.Instance != null && currentWave >= GameManager.Instance.wavesPerLevel)
+            {
+                GameManager.Instance.SetVictory();
+                yield break;
+            }
+
             // Cooldown between waves
             float cooldown = waveCooldown;
             while (cooldown > 0f)
@@ -125,6 +132,7 @@ public class WaveManager : MonoBehaviour
             spawner.SpawnEnemy(EnemyType.Boss, currentWave, hpMult, speedMult);
             _enemiesAlive++;
             ScreenShake.Shake(0.25f, 0.4f); // Boss entrance shake
+            SFXManager.PlayBoss();
         }
     }
 

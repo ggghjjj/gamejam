@@ -6,6 +6,7 @@ public class HUDManager : MonoBehaviour
     private Text _livesText;
     private Text _waveText;
     private Text _levelText;
+    private Text _goldText;
     private Image _expBarFill;
     private Text _waveAnnounce;
     private float _announceTimer;
@@ -20,6 +21,7 @@ public class HUDManager : MonoBehaviour
             GameManager.Instance.OnLivesChanged += UpdateLives;
             GameManager.Instance.OnExpChanged += UpdateExp;
             GameManager.Instance.OnGameOver += ShowGameOver;
+            GameManager.Instance.OnGoldChanged += UpdateGold;
         }
         if (WaveManager.Instance != null)
         {
@@ -40,6 +42,7 @@ public class HUDManager : MonoBehaviour
             GameManager.Instance.OnLivesChanged -= UpdateLives;
             GameManager.Instance.OnExpChanged -= UpdateExp;
             GameManager.Instance.OnGameOver -= ShowGameOver;
+            GameManager.Instance.OnGoldChanged -= UpdateGold;
         }
         if (WaveManager.Instance != null)
         {
@@ -71,17 +74,22 @@ public class HUDManager : MonoBehaviour
         Transform root = canvas.transform;
 
         // --- Top left: Lives ---
-        _livesText = CreateText(root, "LivesText", "\u751f\u547d: 20", 36,
-            new Vector2(0f, 0.93f), new Vector2(0.3f, 1f), TextAnchor.MiddleLeft);
+        _livesText = CreateText(root, "LivesText", "\u751f\u547d: 30", 28,
+            new Vector2(0f, 0.93f), new Vector2(0.2f, 1f), TextAnchor.MiddleLeft);
         _livesText.color = new Color(1f, 0.4f, 0.4f);
 
+        // --- Top: Gold ---
+        _goldText = CreateText(root, "GoldText", "\u91d1\u5e01: 0", 28,
+            new Vector2(0.2f, 0.93f), new Vector2(0.4f, 1f), TextAnchor.MiddleLeft);
+        _goldText.color = new Color(1f, 0.85f, 0.2f);
+
         // --- Top center: Wave ---
-        _waveText = CreateText(root, "WaveText", "\u6ce2\u6b21: 0", 36,
-            new Vector2(0.3f, 0.93f), new Vector2(0.7f, 1f), TextAnchor.MiddleCenter);
+        _waveText = CreateText(root, "WaveText", "\u6ce2\u6b21: 0", 28,
+            new Vector2(0.4f, 0.93f), new Vector2(0.65f, 1f), TextAnchor.MiddleCenter);
         _waveText.color = Color.white;
 
         // --- Top right: Level ---
-        _levelText = CreateText(root, "LevelText", "\u7b49\u7ea7: 1", 36,
+        _levelText = CreateText(root, "LevelText", "\u7b49\u7ea7: 1", 28,
             new Vector2(0.7f, 0.93f), new Vector2(1f, 1f), TextAnchor.MiddleRight);
         _levelText.color = new Color(0.6f, 0.8f, 1f);
 
@@ -117,6 +125,11 @@ public class HUDManager : MonoBehaviour
     private void UpdateLives(int lives)
     {
         if (_livesText != null) _livesText.text = $"\u751f\u547d: {lives}";
+    }
+
+    private void UpdateGold(int gold)
+    {
+        if (_goldText != null) _goldText.text = $"\u91d1\u5e01: {gold}";
     }
 
     private void UpdateExp(int current, int required)

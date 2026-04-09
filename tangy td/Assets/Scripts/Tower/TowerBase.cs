@@ -5,9 +5,11 @@ public class TowerBase : MonoBehaviour
 {
     [Header("Data")]
     public TowerType type;
+    public string towerName;
     public Stat damage;
     public Stat attackSpeed;
     public Stat range;
+    public float totalDamageDealt = 0f;
 
     private float _shootTimer;
     private SpriteRenderer _sr;
@@ -16,6 +18,7 @@ public class TowerBase : MonoBehaviour
     public void Init(TowerData data)
     {
         type = data.type;
+        towerName = data.towerName;
         damage = new Stat(data.baseDamage);
         attackSpeed = new Stat(data.baseAttackSpeed);
         range = new Stat(data.baseRange);
@@ -82,7 +85,7 @@ public class TowerBase : MonoBehaviour
 
         GameObject bulletGO = new GameObject("TowerBullet");
         bulletGO.transform.position = transform.position;
-        bulletGO.transform.localScale = Vector3.one * 0.2f;
+        bulletGO.transform.localScale = Vector3.one * 0.12f;
 
         var sr = bulletGO.AddComponent<SpriteRenderer>();
         sr.sprite = SpriteFactory.CreateCircle(new Color(1f, 0.7f, 0.2f), 16);
@@ -91,6 +94,7 @@ public class TowerBase : MonoBehaviour
         var bullet = bulletGO.AddComponent<Bullet>();
         Vector2 dir = (target.position - transform.position).normalized;
         bullet.Init(dir, damage.Value);
+        totalDamageDealt += damage.Value;
     }
 
     // ========== Warrior: melee AOE around self ==========
@@ -105,6 +109,7 @@ public class TowerBase : MonoBehaviour
             if (enemy != null && !enemy.IsDead)
             {
                 enemy.TakeDamage(damage.Value);
+                totalDamageDealt += damage.Value;
                 hitAny = true;
             }
         }
@@ -132,6 +137,7 @@ public class TowerBase : MonoBehaviour
             if (enemy != null && !enemy.IsDead)
             {
                 enemy.TakeDamage(damage.Value);
+                totalDamageDealt += damage.Value;
                 VFXFactory.SpawnDamagePopup(hit.transform.position, damage.Value);
             }
         }

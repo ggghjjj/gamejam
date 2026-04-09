@@ -8,6 +8,7 @@ public class EnemyBase : MonoBehaviour
     public float maxHP = 30f;
     public float moveSpeed = 2f;
     public int expValue = 10;
+    public int goldValue = 2;
 
     [Header("Runtime")]
     public float currentHP;
@@ -23,13 +24,14 @@ public class EnemyBase : MonoBehaviour
     private SpriteRenderer _hpBarFill;
     private GameObject _hpBarRoot;
 
-    public void Init(WaypointPath path, float hp, float speed, int exp, Color color, float scale = 1f)
+    public void Init(WaypointPath path, float hp, float speed, int exp, Color color, float scale = 1f, int gold = 2)
     {
         _path = path;
         maxHP = hp;
         currentHP = hp;
         moveSpeed = speed;
         expValue = exp;
+        goldValue = gold;
         _currentWaypointIndex = 0;
         _baseScale = scale;
         _bobOffset = Random.Range(0f, Mathf.PI * 2f);
@@ -167,10 +169,13 @@ public class EnemyBase : MonoBehaviour
         IsDead = true;
 
         VFXFactory.SpawnDeathParticles(transform.position, _color);
-
-        if (grantExp)
+        SFXManager.PlayDeath();
         {
-            if (GameManager.Instance != null) GameManager.Instance.totalKills++;
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.totalKills++;
+                GameManager.Instance.AddGold(goldValue);
+            }
             VFXFactory.SpawnExpOrb(transform.position, expValue);
         }
 

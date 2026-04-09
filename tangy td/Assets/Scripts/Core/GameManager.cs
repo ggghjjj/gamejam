@@ -4,26 +4,30 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    public enum GameState { WaitingToStart, Playing, Paused, GameOver }
+    public enum GameState { WaitingToStart, Playing, Paused, GameOver, Victory }
 
     [Header("Game State")]
     public GameState state = GameState.WaitingToStart;
     public int currentWave = 0;
+    public int wavesPerLevel = 10;
 
     [Header("Player Stats")]
-    public int playerLives = 30;           // more lives (was 20)
+    public int playerLives = 30;
     public int experience = 0;
     public int level = 1;
-    public int expToNextLevel = 30;        // faster first level-up (was 50)
+    public int expToNextLevel = 30;
     public float expScalePerLevel = 1.3f;
     public int totalKills = 0;
+    public int gold = 0;
 
     // Events
     public System.Action<int> OnLivesChanged;
-    public System.Action<int, int> OnExpChanged;       // current, required
+    public System.Action<int, int> OnExpChanged;
     public System.Action<int> OnLevelUp;
     public System.Action OnGameOver;
     public System.Action OnGameStart;
+    public System.Action OnVictory;
+    public System.Action<int> OnGoldChanged;
 
     private void Awake()
     {
@@ -50,7 +54,7 @@ public class GameManager : MonoBehaviour
             level++;
             expToNextLevel = Mathf.RoundToInt(expToNextLevel * expScalePerLevel);
             OnLevelUp?.Invoke(level);
-            Debug.Log($"Level Up! Now level {level}. Next level at {expToNextLevel} exp.");
+            SFXManager.PlayLevelUp();
         }
     }
 
@@ -107,5 +111,26 @@ public class GameManager : MonoBehaviour
         if (state != GameState.Paused) return;
         state = GameState.Playing;
         Time.timeScale = 1f;
+    }
+
+    public void AddGold(int amount)
+    {
+        gold += amount;
+        OnGoldChanged?.Invoke(gold);
+    }
+
+    public bool SpendGold(int amount)
+    {
+        if (gold < amount) return false;
+        gold -= amount;
+        OnGoldChanged?.Invoke(gold);
+        return true;
+    }
+
+    public void SetVictory()
+    {
+        if (state == GameState.Victory || state == GameState.GameOver) return;
+        state = GameState.Victory;
+        OnVictory?.Invoke();
     }
 }

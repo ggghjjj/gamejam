@@ -61,7 +61,7 @@ public class GameSetup : MonoBehaviour
         var heroCol = heroGO.AddComponent<BoxCollider2D>();
         heroCol.size = new Vector2(0.8f, 0.8f);
         heroGO.transform.position = new Vector3(0f, yB + 0.5f, 0f);
-        heroGO.transform.localScale = Vector3.one * 0.5f;
+        heroGO.transform.localScale = Vector3.one * 0.3f;
 
         // Range indicator circle (child of hero)
         GameObject rangeIndicator = new GameObject("RangeIndicator");
@@ -95,6 +95,10 @@ public class GameSetup : MonoBehaviour
         // 6.6 Placement System
         GameObject placementGO = new GameObject("PlacementSystem");
         PlacementSystem placement = placementGO.AddComponent<PlacementSystem>();
+
+        // 6.7 SFX Manager
+        GameObject sfxGO = new GameObject("SFXManager");
+        sfxGO.AddComponent<SFXManager>();
 
         // 7. UI Canvas
         GameObject canvasGO = new GameObject("Canvas");
@@ -133,6 +137,11 @@ public class GameSetup : MonoBehaviour
         // Tower Placement UI
         placement.BuildPlacementUI(canvasGO.transform);
 
+        // Victory UI
+        GameObject victoryUIGO = new GameObject("VictoryUI");
+        victoryUIGO.transform.SetParent(canvasGO.transform, false);
+        victoryUIGO.AddComponent<VictoryUI>();
+
         // 8. Camera follow + screen shake
         if (cam != null)
         {
@@ -155,26 +164,28 @@ public class GameSetup : MonoBehaviour
 
     private void SpawnEnvironment(float xL, float xR, float yT, float yB)
     {
-        // Scatter random dark-green "trees" as decoration
-        int treeCount = 12;
+        int treeCount = 15;
         for (int i = 0; i < treeCount; i++)
         {
             float x = Random.Range(xL + 0.5f, xR - 0.5f);
-            float y = Random.Range(yT * 0.5f, yB + 0.5f); // avoid top path area
+            float y = Random.Range(yB + 1f, yT - 0.5f);
 
             GameObject tree = new GameObject($"Tree_{i}");
             tree.transform.position = new Vector3(x, y, 0f);
-            float size = Random.Range(0.2f, 0.4f);
-            tree.transform.localScale = Vector3.one * size;
+            tree.transform.localScale = Vector3.one * 0.3f;
 
             var sr = tree.AddComponent<SpriteRenderer>();
             Color treeColor = new Color(
-                Random.Range(0.05f, 0.15f),
-                Random.Range(0.25f, 0.4f),
-                Random.Range(0.05f, 0.15f),
-                0.6f);
+                Random.Range(0.05f, 0.12f),
+                Random.Range(0.3f, 0.45f),
+                Random.Range(0.05f, 0.12f));
             sr.sprite = SpriteFactory.CreateCircle(treeColor, 16);
-            sr.sortingOrder = 2;
+            sr.sortingOrder = 3;
+
+            // Collider for placement blocking
+            var col = tree.AddComponent<CircleCollider2D>();
+            col.radius = 0.4f;
+            col.isTrigger = true;
         }
     }
 

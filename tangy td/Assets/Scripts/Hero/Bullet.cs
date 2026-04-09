@@ -45,6 +45,7 @@ public class Bullet : MonoBehaviour
             enemy.TakeDamage(_damage);
             VFXFactory.SpawnHitFlash(transform.position);
             VFXFactory.SpawnDamagePopup(other.transform.position, _damage, _isCrit);
+            SFXManager.PlayHit();
             if (!_pierce)
             {
                 Destroy(gameObject);

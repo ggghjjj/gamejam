@@ -6,10 +6,10 @@ public class HeroController : MonoBehaviour
 {
     [Header("Stats (Stat System)")]
     public Stat damage = new Stat(10f);
-    public Stat attackSpeed = new Stat(3f);       // 3 shots/sec (was 1)
+    public Stat attackSpeed = new Stat(3f);
     public Stat moveSpeedStat = new Stat(5f);
-    public Stat attackRange = new Stat(5f);        // range 5 (was 3)
-    public Stat maxHPStat = new Stat(150f);        // more HP to survive early
+    public Stat attackRange = new Stat(3f);        // closer range (was 5)
+    public Stat maxHPStat = new Stat(150f);
 
     [Header("Runtime")]
     public float currentHP;
@@ -46,12 +46,12 @@ public class HeroController : MonoBehaviour
 
         if (_moveInput.sqrMagnitude > 0.01f)
         {
-            float bob = Mathf.Sin(Time.time * 8f) * 0.05f;
-            transform.localScale = new Vector3(0.5f - bob * 0.3f, 0.5f + bob, 1f);
+            float bob = Mathf.Sin(Time.time * 8f) * 0.03f;
+            transform.localScale = new Vector3(0.3f - bob * 0.2f, 0.3f + bob, 1f);
         }
         else
         {
-            transform.localScale = Vector3.one * 0.5f;
+            transform.localScale = Vector3.one * 0.3f;
         }
     }
 

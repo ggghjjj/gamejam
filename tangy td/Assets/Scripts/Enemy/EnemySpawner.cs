@@ -14,7 +14,7 @@ public class EnemySpawner : MonoBehaviour
     public void SpawnEnemy(EnemyType type, int wave, float hpMult, float speedMult)
     {
         float hp, speed, scale;
-        int exp;
+        int exp, gold;
         Color color;
 
         switch (type)
@@ -23,29 +23,33 @@ public class EnemySpawner : MonoBehaviour
                 hp = baseHP * 0.5f * hpMult;
                 speed = baseSpeed * 1.8f * speedMult;
                 exp = baseExp + 5;
-                color = new Color(0.2f, 0.85f, 0.3f); // green
-                scale = 0.35f;
+                gold = 1;
+                color = new Color(0.2f, 0.85f, 0.3f);
+                scale = 0.18f;
                 break;
             case EnemyType.Tank:
                 hp = baseHP * 3f * hpMult;
                 speed = baseSpeed * 0.6f * speedMult;
                 exp = baseExp + 15;
-                color = new Color(0.6f, 0.2f, 0.8f); // purple
-                scale = 0.7f;
+                gold = 5;
+                color = new Color(0.6f, 0.2f, 0.8f);
+                scale = 0.4f;
                 break;
             case EnemyType.Boss:
                 hp = baseHP * 10f * hpMult;
                 speed = baseSpeed * 0.5f * speedMult;
                 exp = baseExp * 5;
-                color = new Color(1f, 0.5f, 0.1f); // orange
-                scale = 1f;
+                gold = 20;
+                color = new Color(1f, 0.5f, 0.1f);
+                scale = 0.6f;
                 break;
             default: // Normal
                 hp = baseHP * hpMult;
                 speed = baseSpeed * speedMult;
                 exp = baseExp;
-                color = new Color(0.9f, 0.2f, 0.2f); // red
-                scale = 0.5f;
+                gold = 2;
+                color = new Color(0.9f, 0.2f, 0.2f);
+                scale = 0.25f;
                 break;
         }
 
@@ -61,7 +65,7 @@ public class EnemySpawner : MonoBehaviour
         enemyGO.AddComponent<CircleCollider2D>();
 
         EnemyBase enemy = enemyGO.AddComponent<EnemyBase>();
-        enemy.Init(usedPath, hp, speed, exp, color, scale);
+        enemy.Init(usedPath, hp, speed, exp, color, scale, gold);
 
         var tracker = enemyGO.AddComponent<DestroyNotifier>();
         tracker.onDestroy += () => WaveManager.Instance?.OnEnemyDied();
