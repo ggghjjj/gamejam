@@ -16,6 +16,7 @@ public class EnemyBase : MonoBehaviour
     private WaypointPath _path;
     private int _currentWaypointIndex;
     private SpriteRenderer _sr;
+    private Color _color;
 
     public void Init(WaypointPath path, float hp, float speed, int exp, Color color, float scale = 1f)
     {
@@ -29,6 +30,7 @@ public class EnemyBase : MonoBehaviour
         _sr = GetComponent<SpriteRenderer>();
         _sr.sprite = SpriteFactory.CreateCircle(color);
         _sr.sortingOrder = 5;
+        _color = color;
 
         transform.localScale = Vector3.one * scale;
         transform.position = _path.GetPosition(0);
@@ -99,11 +101,16 @@ public class EnemyBase : MonoBehaviour
         if (IsDead) return;
         IsDead = true;
 
+        // Death particles
+        VFXFactory.SpawnDeathParticles(transform.position, _color);
+
         if (grantExp)
         {
-            GameManager.Instance?.AddExperience(expValue);
+            if (GameManager.Instance != null) GameManager.Instance.totalKills++;
+            // Drop exp orb instead of directly adding exp
+            VFXFactory.SpawnExpOrb(transform.position, expValue);
         }
 
-        Destroy(gameObject, 0.05f);
+        Destroy(gameObject, 0.02f);
     }
 }

@@ -71,6 +71,10 @@ public class GameSetup : MonoBehaviour
         GameObject upgradeGO = new GameObject("UpgradeManager");
         upgradeGO.AddComponent<UpgradeManager>();
 
+        // 6.5 Object Pool
+        GameObject poolGO = new GameObject("ObjectPool");
+        poolGO.AddComponent<ObjectPool>();
+
         // 7. UI Canvas
         GameObject canvasGO = new GameObject("Canvas");
         Canvas canvas = canvasGO.AddComponent<Canvas>();
@@ -99,6 +103,13 @@ public class GameSetup : MonoBehaviour
         GameObject upgradeUIGO = new GameObject("UpgradeUI");
         upgradeUIGO.transform.SetParent(canvasGO.transform, false);
         upgradeUIGO.AddComponent<UpgradeUI>();
+
+        // 8. Camera follow
+        if (cam != null)
+        {
+            var camFollow = cam.gameObject.AddComponent<CameraFollow>();
+            camFollow.target = heroGO.transform;
+        }
 
         Debug.Log("=== Tangy TD \u573a\u666f\u642d\u5efa\u5b8c\u6210 ===");
         Debug.Log("WASD \u79fb\u52a8\u82f1\u96c4\uff0c\u81ea\u52a8\u5c04\u51fb\u8303\u56f4\u5185\u654c\u4eba");

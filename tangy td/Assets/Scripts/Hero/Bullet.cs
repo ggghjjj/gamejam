@@ -41,6 +41,7 @@ public class Bullet : MonoBehaviour
         if (enemy != null && !enemy.IsDead)
         {
             enemy.TakeDamage(_damage);
+            VFXFactory.SpawnHitFlash(transform.position);
             if (!_pierce)
             {
                 Destroy(gameObject);

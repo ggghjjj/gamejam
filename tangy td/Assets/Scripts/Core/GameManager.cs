@@ -38,8 +38,6 @@ public class GameManager : MonoBehaviour
     {
         if (state != GameState.Playing) return;
 
-        totalKills++;
-
         // Apply exp bonus from upgrades
         float mult = UpgradeManager.Instance != null ? UpgradeManager.Instance.expBonusMult : 1f;
         experience += Mathf.RoundToInt(amount * mult);
