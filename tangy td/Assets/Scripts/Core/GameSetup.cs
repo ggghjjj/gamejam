@@ -92,6 +92,10 @@ public class GameSetup : MonoBehaviour
         GameObject poolGO = new GameObject("ObjectPool");
         poolGO.AddComponent<ObjectPool>();
 
+        // 6.6 Placement System
+        GameObject placementGO = new GameObject("PlacementSystem");
+        PlacementSystem placement = placementGO.AddComponent<PlacementSystem>();
+
         // 7. UI Canvas
         GameObject canvasGO = new GameObject("Canvas");
         Canvas canvas = canvasGO.AddComponent<Canvas>();
@@ -126,16 +130,80 @@ public class GameSetup : MonoBehaviour
         flowUIGO.transform.SetParent(canvasGO.transform, false);
         flowUIGO.AddComponent<GameFlowUI>();
 
-        // 8. Camera follow
+        // Tower Placement UI
+        placement.BuildPlacementUI(canvasGO.transform);
+
+        // 8. Camera follow + screen shake
         if (cam != null)
         {
             var camFollow = cam.gameObject.AddComponent<CameraFollow>();
             camFollow.target = heroGO.transform;
+            cam.gameObject.AddComponent<ScreenShake>();
         }
+
+        // 9. Environment decorations
+        SpawnEnvironment(xL, xR, yT, yB);
+
+        // 10. Path visualization
+        VisualizePath(pathA, new Color(0.6f, 0.45f, 0.2f, 0.15f));
+        VisualizePath(pathB, new Color(0.5f, 0.4f, 0.25f, 0.12f));
 
         Debug.Log("=== Tangy TD \u573a\u666f\u642d\u5efa\u5b8c\u6210 ===");
         Debug.Log("WASD \u79fb\u52a8\u82f1\u96c4\uff0c\u81ea\u52a8\u5c04\u51fb\u8303\u56f4\u5185\u654c\u4eba");
         Debug.Log("\u5347\u7ea7\u540e\u53ef\u9009\u62e9\u5f3a\u5316!");
+    }
+
+    private void SpawnEnvironment(float xL, float xR, float yT, float yB)
+    {
+        // Scatter random dark-green "trees" as decoration
+        int treeCount = 12;
+        for (int i = 0; i < treeCount; i++)
+        {
+            float x = Random.Range(xL + 0.5f, xR - 0.5f);
+            float y = Random.Range(yT * 0.5f, yB + 0.5f); // avoid top path area
+
+            GameObject tree = new GameObject($"Tree_{i}");
+            tree.transform.position = new Vector3(x, y, 0f);
+            float size = Random.Range(0.2f, 0.4f);
+            tree.transform.localScale = Vector3.one * size;
+
+            var sr = tree.AddComponent<SpriteRenderer>();
+            Color treeColor = new Color(
+                Random.Range(0.05f, 0.15f),
+                Random.Range(0.25f, 0.4f),
+                Random.Range(0.05f, 0.15f),
+                0.6f);
+            sr.sprite = SpriteFactory.CreateCircle(treeColor, 16);
+            sr.sortingOrder = 2;
+        }
+    }
+
+    private void VisualizePath(WaypointPath path, Color color)
+    {
+        if (path == null || path.Length < 2) return;
+
+        for (int i = 0; i < path.Length - 1; i++)
+        {
+            Vector3 from = path.GetPosition(i);
+            Vector3 to = path.GetPosition(i + 1);
+            float dist = Vector3.Distance(from, to);
+            int dots = Mathf.CeilToInt(dist / 0.5f);
+
+            for (int d = 0; d < dots; d++)
+            {
+                float t = (float)d / dots;
+                Vector3 pos = Vector3.Lerp(from, to, t);
+
+                GameObject dot = new GameObject("PathDot");
+                dot.transform.position = pos;
+                dot.transform.localScale = Vector3.one * 0.15f;
+
+                var sr = dot.AddComponent<SpriteRenderer>();
+                sr.sprite = SpriteFactory.CreateSquare(color, 8);
+                sr.sortingOrder = 0;
+            }
+        }
+    }
     }
 
     private WaypointPath CreatePath(string name, Vector3[] positions)

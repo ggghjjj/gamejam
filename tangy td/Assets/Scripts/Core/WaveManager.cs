@@ -124,6 +124,7 @@ public class WaveManager : MonoBehaviour
             }
             spawner.SpawnEnemy(EnemyType.Boss, currentWave, hpMult, speedMult);
             _enemiesAlive++;
+            ScreenShake.Shake(0.25f, 0.4f); // Boss entrance shake
         }
     }
 
