@@ -127,7 +127,10 @@ public class VictoryUI : MonoBehaviour
 
         CreateButton(_panel.transform, "\u4e0b\u4e00\u5173",
             new Vector2(0.55f, 0.05f), new Vector2(0.85f, 0.15f),
-            new Color(0.2f, 0.7f, 0.3f), () => GameManager.Instance?.RestartGame());
+            new Color(0.2f, 0.7f, 0.3f), () => {
+                GameSetup.CurrentLevel++;
+                GameManager.Instance?.RestartGame();
+            });
 
         _panel.SetActive(true);
     }

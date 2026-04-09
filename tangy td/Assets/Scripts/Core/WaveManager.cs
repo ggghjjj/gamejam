@@ -9,9 +9,9 @@ public class WaveManager : MonoBehaviour
     public EnemySpawner[] spawners; // one per path
 
     [Header("Continuous Spawn Settings")]
-    public float baseSpawnInterval = 0.5f;     // seconds between spawns
-    public float minSpawnInterval = 0.08f;     // fastest spawn rate
-    public float intervalDecayPerMinute = 0.05f; // spawn gets faster over time
+    public float baseSpawnInterval = 0.6f;     // start slow
+    public float minSpawnInterval = 0.06f;     // very fast late game
+    public float intervalDecayPerMinute = 0.15f; // accelerate faster
     public float hpScalePerMinute = 1.3f;      // enemy HP grows over time
     public float speedScalePerMinute = 1.1f;
     public int bossEveryNKills = 80;           // boss every N kills

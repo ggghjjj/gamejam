@@ -100,23 +100,24 @@ public class GameFlowUI : MonoBehaviour
         scrollBG.color = new Color(0.03f, 0.05f, 0.08f, 1f);
         scrollGO.AddComponent<Mask>().showMaskGraphic = true;
 
-        // Content (tall, draggable)
+        // Content (tall, draggable) - bottom-up layout, level 1 at bottom
         GameObject contentGO = new GameObject("Content");
         contentGO.transform.SetParent(scrollGO.transform, false);
         RectTransform contentRT = contentGO.AddComponent<RectTransform>();
-        contentRT.anchorMin = new Vector2(0, 1);
-        contentRT.anchorMax = new Vector2(1, 1);
-        contentRT.pivot = new Vector2(0.5f, 1);
+        contentRT.anchorMin = new Vector2(0, 0);
+        contentRT.anchorMax = new Vector2(1, 0);
+        contentRT.pivot = new Vector2(0.5f, 0);
 
         float nodeSpacing = 100f;
-        float totalHeight = LevelNames.Length * nodeSpacing + 80f;
+        float totalHeight = LevelNames.Length * nodeSpacing + 120f;
         contentRT.sizeDelta = new Vector2(0, totalHeight);
 
         scroll.content = contentRT;
         scroll.vertical = true;
         scroll.horizontal = false;
-        scroll.movementType = ScrollRect.MovementType.Elastic;
-        scroll.elasticity = 0.1f;
+        scroll.movementType = ScrollRect.MovementType.Clamped; // no bounce back
+        scroll.inertia = true;
+        scroll.decelerationRate = 0.05f;
 
         // Generate nodes with zigzag path
         float[] xPositions = new float[LevelNames.Length];
@@ -128,7 +129,7 @@ public class GameFlowUI : MonoBehaviour
 
         for (int i = 0; i < LevelNames.Length; i++)
         {
-            float yPos = -50f - i * nodeSpacing;
+            float yPos = 50f + i * nodeSpacing; // bottom-up: level 1 at bottom
             float xPos = xPositions[i];
             int levelIdx = i;
 
@@ -136,7 +137,7 @@ public class GameFlowUI : MonoBehaviour
             if (i < LevelNames.Length - 1)
             {
                 float nextX = xPositions[i + 1];
-                float nextY = -50f - (i + 1) * nodeSpacing;
+                float nextY = 50f + (i + 1) * nodeSpacing;
 
                 GameObject line = new GameObject("Chain");
                 line.transform.SetParent(contentGO.transform, false);
@@ -146,8 +147,6 @@ public class GameFlowUI : MonoBehaviour
                 lineRT.anchorMin = new Vector2(0.5f, 0);
                 lineRT.anchorMax = new Vector2(0.5f, 0);
                 lineRT.pivot = new Vector2(0.5f, 0.5f);
-
-                // Position at midpoint, rotate toward next node
                 float midX = (xPos + nextX) / 2f;
                 float midY = (yPos + nextY) / 2f;
                 lineRT.anchoredPosition = new Vector2(midX, midY);

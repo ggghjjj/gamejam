@@ -136,37 +136,10 @@ public class TowerBase : MonoBehaviour
     // ========== Warrior: melee AOE around self ==========
     private void AttackMelee()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, range.Value * 0.6f);
-        bool hitAny = false;
+        // Always show slash for visual feedback
+        SpawnSlashEffect();
 
-        foreach (var hit in hits)
-        {
-            EnemyBase enemy = hit.GetComponent<EnemyBase>();
-            if (enemy != null && !enemy.IsDead)
-            {
-                enemy.TakeDamage(damage.Value);
-                totalDamageDealt += damage.Value;
-                hitAny = true;
-            }
-        }
-
-        if (hitAny)
-        {
-            // Slash visual: expanding ring
-            SpawnSlashEffect();
-        }
-    }
-
-    // ========== Mage: AOE at densest cluster ==========
-    private void AttackAOE()
-    {
-        Vector3 targetPos = FindDensestPoint();
-        if (targetPos == Vector3.zero) return;
-
-        // Explosion at target
-        SpawnExplosion(targetPos);
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(targetPos, 1.2f);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, range.Value);
         foreach (var hit in hits)
         {
             EnemyBase enemy = hit.GetComponent<EnemyBase>();
@@ -177,6 +150,27 @@ public class TowerBase : MonoBehaviour
                 VFXFactory.SpawnDamagePopup(hit.transform.position, damage.Value);
             }
         }
+    }
+
+    // ========== Mage: AOE at densest cluster ==========
+    private void AttackAOE()
+    {
+        Vector3 targetPos = FindDensestPoint();
+        if (targetPos == Vector3.zero) return;
+
+        // Launch projectile toward target
+        float dmg = damage.Value;
+        GameObject projGO = new GameObject("MageProj");
+        projGO.transform.position = transform.position;
+        projGO.transform.localScale = Vector3.one * 0.2f;
+        var projSR = projGO.AddComponent<SpriteRenderer>();
+        projSR.sprite = SpriteFactory.CreateCircle(new Color(0.6f, 0.2f, 1f), 16);
+        projSR.sortingOrder = 15;
+
+        var mover = projGO.AddComponent<MageProjectile>();
+        mover.target = targetPos;
+        mover.damage = dmg;
+        mover.owner = this;
     }
 
     // ========== Targeting helpers ==========
@@ -231,21 +225,20 @@ public class TowerBase : MonoBehaviour
     {
         GameObject slash = new GameObject("Slash");
         slash.transform.position = transform.position;
-        slash.transform.localScale = Vector3.one * 0.3f;
+        slash.transform.localScale = Vector3.one * 0.5f;
 
         var sr = slash.AddComponent<SpriteRenderer>();
-        sr.sprite = SpriteFactory.CreateCircle(new Color(1f, 0.8f, 0.3f, 0.5f), 32);
+        sr.sprite = SpriteFactory.CreateCircle(new Color(1f, 0.6f, 0.1f, 0.6f), 32);
         sr.sortingOrder = 12;
 
         var mover = slash.AddComponent<ParticleMove>();
         mover.velocity = Vector2.zero;
-        mover.lifetime = 0.15f;
+        mover.lifetime = 0.2f;
         mover.fadeOut = true;
 
-        // Quick expand
         var expander = slash.AddComponent<ScaleExpand>();
-        expander.targetScale = range.Value * 1.2f;
-        expander.duration = 0.15f;
+        expander.targetScale = range.Value * 2f;
+        expander.duration = 0.2f;
     }
 
     private void SpawnExplosion(Vector3 pos)
@@ -293,5 +286,56 @@ public class ScaleExpand : MonoBehaviour
         _timer += Time.deltaTime;
         float t = Mathf.Clamp01(_timer / duration);
         transform.localScale = Vector3.Lerp(_startScale, Vector3.one * targetScale, t);
+    }
+}
+
+/// <summary>
+/// Mage projectile: flies to target position, then explodes dealing AOE damage
+/// </summary>
+public class MageProjectile : MonoBehaviour
+{
+    public Vector3 target;
+    public float damage;
+    public TowerBase owner;
+    public float speed = 6f;
+
+    private void Update()
+    {
+        transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
+
+        if (Vector3.Distance(transform.position, target) < 0.1f)
+        {
+            Explode();
+            Destroy(gameObject);
+        }
+    }
+
+    private void Explode()
+    {
+        // Explosion VFX
+        GameObject exp = new GameObject("Explosion");
+        exp.transform.position = target;
+        exp.transform.localScale = Vector3.one * 0.2f;
+        var sr = exp.AddComponent<SpriteRenderer>();
+        sr.sprite = SpriteFactory.CreateCircle(new Color(0.5f, 0.2f, 1f, 0.6f), 32);
+        sr.sortingOrder = 12;
+        var pm = exp.AddComponent<ParticleMove>();
+        pm.velocity = Vector2.zero;
+        pm.lifetime = 0.3f;
+        pm.fadeOut = true;
+        exp.AddComponent<ScaleExpand>().targetScale = 2.5f;
+
+        // AOE damage
+        Collider2D[] hits = Physics2D.OverlapCircleAll(target, 1.2f);
+        foreach (var hit in hits)
+        {
+            EnemyBase enemy = hit.GetComponent<EnemyBase>();
+            if (enemy != null && !enemy.IsDead)
+            {
+                enemy.TakeDamage(damage);
+                if (owner != null) owner.totalDamageDealt += damage;
+                VFXFactory.SpawnDamagePopup(hit.transform.position, damage);
+            }
+        }
     }
 }
