@@ -61,6 +61,7 @@ public class HeroShooter : MonoBehaviour
     {
         GameObject bulletGO = new GameObject("Bullet");
         bulletGO.transform.position = transform.position;
+        bulletGO.transform.localScale = Vector3.one * 0.25f;
 
         var sr = bulletGO.AddComponent<SpriteRenderer>();
         sr.sprite = SpriteFactory.CreateCircle(new Color(1f, 0.9f, 0.2f), 16);
