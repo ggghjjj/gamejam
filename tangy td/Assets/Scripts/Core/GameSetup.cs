@@ -204,7 +204,6 @@ public class GameSetup : MonoBehaviour
             }
         }
     }
-    }
 
     private WaypointPath CreatePath(string name, Vector3[] positions)
     {
